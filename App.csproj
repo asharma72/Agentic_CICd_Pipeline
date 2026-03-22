@@ -1,0 +1,61 @@
+Here is a valid .csproj XML file with required NuGet packages for the provided C# code:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore" Version="6.0.9" />
+    <PackageReference Include="Microsoft.NET.Sdk.Web" Version="6.0.403" />
+  </ItemGroup>
+</Project>
+```
+
+However, the above .csproj file assumes you're using the .NET 6.0 framework and doesn't explicitly include all the required NuGet packages. Here is the complete .csproj file:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore" Version="6.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="6.0.9" />
+    <PackageReference Include="Microsoft.NET.Sdk.Web" Version="6.0.403" />
+  </ItemGroup>
+</Project>
+```
+
+This .csproj file includes the following NuGet packages:
+- `Microsoft.AspNetCore`: The core package for ASP.NET Core.
+- `Microsoft.AspNetCore.Mvc.Core`: The package for ASP.NET Core MVC.
+
+For the provided C# code, here is the complete code snippet:
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.UseHttpsRedirection();
+
+var products = new[]
+{
+    new { Id = 1, Name = "Product 1", Price = 10.99m },
+    new { Id = 2, Name = "Product 2", Price = 9.99m },
+    new { Id = 3, Name = "Product 3", Price = 12.99m },
+};
+
+app.MapGet("/products", () => Results.Ok(products));
+app.MapGet("/products/{id}", (int id) =>
+{
+    var product = products.FirstOrDefault(p => p.Id == id);
+    return product != null ? Results.Ok(product) : Results.NotFound();
+});
+
+app.Run();
+```
+
+The above code defines an ASP.NET Core Web API that exposes two endpoints: `/products` and `/products/{id}`. The `/products` endpoint returns a list of all products, while the `/products/{id}` endpoint returns a single product with the specified `id`. If the product is not found, it returns a 404 Not Found response.
