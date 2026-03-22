@@ -1,5 +1,3 @@
 fastapi
-uvicorn
-sqlalchemy
-python-dotenv
-pydantic
+pydantic 
+typing
