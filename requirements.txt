@@ -1,2 +1,5 @@
 fastapi
-logging
+uvicorn
+sqlalchemy
+python-dotenv
+pydantic
