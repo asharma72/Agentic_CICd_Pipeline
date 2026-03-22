@@ -1,0 +1,21 @@
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+*.env
+ 
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+ 
+# ── Virtual Environment ───────────────────────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+venv.bak/

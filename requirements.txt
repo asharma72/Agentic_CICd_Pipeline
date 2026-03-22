@@ -1,0 +1,15 @@
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-groq
+langchain-text-splitters
+langsmith
+langgraph
+langgraph-prebuilt
+python-dotenv
+requests
+pytest
+faiss-cpu
+pypdf
+tiktoken
