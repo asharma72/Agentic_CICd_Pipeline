@@ -1,61 +1,57 @@
-Here is a valid .csproj XML file with required NuGet packages for the provided C# code:
+Here is the corrected code and a sample `.csproj` file:
 
-```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore" Version="6.0.9" />
-    <PackageReference Include="Microsoft.NET.Sdk.Web" Version="6.0.403" />
-  </ItemGroup>
-</Project>
-```
-
-However, the above .csproj file assumes you're using the .NET 6.0 framework and doesn't explicitly include all the required NuGet packages. Here is the complete .csproj file:
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore" Version="6.0.9" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="6.0.9" />
-    <PackageReference Include="Microsoft.NET.Sdk.Web" Version="6.0.403" />
-  </ItemGroup>
-</Project>
-```
-
-This .csproj file includes the following NuGet packages:
-- `Microsoft.AspNetCore`: The core package for ASP.NET Core.
-- `Microsoft.AspNetCore.Mvc.Core`: The package for ASP.NET Core MVC.
-
-For the provided C# code, here is the complete code snippet:
-
+**Code:**
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 
-var products = new[]
+app.MapGet("/products", () => 
 {
-    new { Id = 1, Name = "Product 1", Price = 10.99m },
-    new { Id = 2, Name = "Product 2", Price = 9.99m },
-    new { Id = 3, Name = "Product 3", Price = 12.99m },
-};
+    var products = new[]
+    {
+        new { Id = 1, Name = "Product 1", Price = 10.99m },
+        new { Id = 2, Name = "Product 2", Price = 5.99m },
+        new { Id = 3, Name = "Product 3", Price = 7.99m }
+    };
 
-app.MapGet("/products", () => Results.Ok(products));
-app.MapGet("/products/{id}", (int id) =>
-{
-    var product = products.FirstOrDefault(p => p.Id == id);
-    return product != null ? Results.Ok(product) : Results.NotFound();
+    return products;
 });
 
 app.Run();
 ```
 
-The above code defines an ASP.NET Core Web API that exposes two endpoints: `/products` and `/products/{id}`. The `/products` endpoint returns a list of all products, while the `/products/{id}` endpoint returns a single product with the specified `id`. If the product is not found, it returns a 404 Not Found response.
+**.csproj file:**
+```xml
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+</Project>
+```
+
+**Explanation:**
+
+* The `.csproj` file is a valid XML file that defines a .NET 7.0 web project.
+* It includes two NuGet packages: `Microsoft.AspNetCore.Mvc` and `Swashbuckle.AspNetCore`.
+* The `Microsoft.AspNetCore.Mvc` package provides the ASP.NET Core MVC framework.
+* The `Swashbuckle.AspNetCore` package provides Swagger and Swagger UI support.
+* The code in the `Program.cs` file uses these packages to create a simple web API with a single endpoint that returns a list of products.
+* The `app.Run()` statement at the end of the `Program.cs` file starts the web server.

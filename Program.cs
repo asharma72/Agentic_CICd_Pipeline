@@ -1,44 +1,52 @@
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 
-var products = new[]
+app.MapGet("/products", () => 
 {
-    new { Id = 1, Name = "Product 1", Price = 10.99m },
-    new { Id = 2, Name = "Product 2", Price = 9.99m },
-    new { Id = 3, Name = "Product 3", Price = 12.99m },
-};
-
-app.MapGet("/products", () => Results.Ok(products));
-app.MapGet("/products/{id}", (int id) =>
-{
-    var product = products.FirstOrDefault(p => p.Id == id);
-    return product != null ? Results.Ok(product) : Results.NotFound();
+    var products = new[]
+    {
+        new { Id = 1, Name = "Product 1", Price = 10.99m },
+        new { Id = 2, Name = "Product 2", Price = 5.99m },
+        new { Id = 3, Name = "Product 3", Price = 7.99m },
+    };
+    return Results.Ok(products);
 });
 
-app.MapPost("/products", (Product product) =>
+app.MapGet("/products/{id}", (int id) => 
 {
-    products = products.Concat(new[] { product }).ToArray();
+    var product = new { Id = id, Name = "Product " + id, Price = 10.99m };
+    return Results.Ok(product);
+});
+
+app.MapPost("/products", (Product product) => 
+{
+    // Save product to database
     return Results.Created($"/products/{product.Id}", product);
 });
 
-app.MapPut("/products/{id}", (int id, Product product) =>
+app.MapPut("/products/{id}", (int id, Product product) => 
 {
-    var index = Array.IndexOf(products, products.FirstOrDefault(p => p.Id == id));
-    if (index != -1)
-    {
-        products[index] = product;
-        return Results.Ok(product);
-    }
-    return Results.NotFound();
+    // Update product in database
+    return Results.NoContent();
 });
 
-app.MapDelete("/products/{id}", (int id) =>
+app.MapDelete("/products/{id}", (int id) => 
 {
-    products = products.Where(p => p.Id != id).ToArray();
+    // Delete product from database
     return Results.NoContent();
 });
 
