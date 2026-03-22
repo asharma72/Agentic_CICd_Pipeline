@@ -1,107 +1,94 @@
-requirements.txt
-fastapi
-uvicorn
-sqlalchemy
-python-dotenv
-
-main.py
-from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+from typing import List
 
 app = FastAPI()
 
-# Database connection
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
-
-Base.metadata.create_all(bind=engine)
-
-class UserRequest(BaseModel):
+class Product(BaseModel):
+    id: int
     name: str
-    email: str
+    price: float
+    description: str
 
-class UserResponse(BaseModel):
+class Order(BaseModel):
+    id: int
+    product_id: int
+    quantity: int
+
+class Customer(BaseModel):
     id: int
     name: str
     email: str
 
-@app.get("/users/")
-async def read_users():
-    try:
-        db = SessionLocal()
-        users = db.query(User).all()
-        return JSONResponse(content=jsonable_encoder([user.__dict__ for user in users]), status_code=status.HTTP_200_OK)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+products = [
+    {"id": 1, "name": "Product 1", "price": 10.99, "description": "This is product 1"},
+    {"id": 2, "name": "Product 2", "price": 9.99, "description": "This is product 2"},
+    {"id": 3, "name": "Product 3", "price": 12.99, "description": "This is product 3"}
+]
 
-@app.get("/users/{user_id}")
-async def read_user(user_id: int):
-    try:
-        db = SessionLocal()
-        user = db.query(User).filter(User.id == user_id).first()
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        return JSONResponse(content=jsonable_encoder(user.__dict__), status_code=status.HTTP_200_OK)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+orders = []
+customers = []
 
-@app.post("/users/")
-async def create_user(user: UserRequest):
-    try:
-        db = SessionLocal()
-        db_user = User(name=user.name, email=user.email)
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
-        return JSONResponse(content=jsonable_encoder(db_user.__dict__), status_code=status.HTTP_201_CREATED)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+@app.get("/products/")
+async def read_products():
+    return products
 
-@app.put("/users/{user_id}")
-async def update_user(user_id: int, user: UserRequest):
-    try:
-        db = SessionLocal()
-        db_user = db.query(User).filter(User.id == user_id).first()
-        if db_user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        db_user.name = user.name
-        db_user.email = user.email
-        db.commit()
-        db.refresh(db_user)
-        return JSONResponse(content=jsonable_encoder(db_user.__dict__), status_code=status.HTTP_200_OK)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+@app.get("/products/{product_id}")
+async def read_product(product_id: int):
+    for product in products:
+        if product["id"] == product_id:
+            return product
+    raise HTTPException(status_code=404, detail="Product not found")
 
-@app.delete("/users/{user_id}")
-async def delete_user(user_id: int):
-    try:
-        db = SessionLocal()
-        user = db.query(User).filter(User.id == user_id).first()
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        db.delete(user)
-        db.commit()
-        return JSONResponse(content={"message": "User deleted successfully"}, status_code=status.HTTP_200_OK)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+@app.post("/products/")
+async def create_product(product: Product):
+    products.append(product.dict())
+    return product
+
+@app.put("/products/{product_id}")
+async def update_product(product_id: int, product: Product):
+    for i, p in enumerate(products):
+        if p["id"] == product_id:
+            products[i] = product.dict()
+            return product
+    raise HTTPException(status_code=404, detail="Product not found")
+
+@app.delete("/products/{product_id}")
+async def delete_product(product_id: int):
+    for i, p in enumerate(products):
+        if p["id"] == product_id:
+            del products[i]
+            return {"message": "Product deleted successfully"}
+    raise HTTPException(status_code=404, detail="Product not found")
+
+@app.post("/orders/")
+async def create_order(order: Order):
+    orders.append(order.dict())
+    return order
+
+@app.get("/orders/")
+async def read_orders():
+    return orders
+
+@app.get("/orders/{order_id}")
+async def read_order(order_id: int):
+    for order in orders:
+        if order["id"] == order_id:
+            return order
+    raise HTTPException(status_code=404, detail="Order not found")
+
+@app.post("/customers/")
+async def create_customer(customer: Customer):
+    customers.append(customer.dict())
+    return customer
+
+@app.get("/customers/")
+async def read_customers():
+    return customers
+
+@app.get("/customers/{customer_id}")
+async def read_customer(customer_id: int):
+    for customer in customers:
+        if customer["id"] == customer_id:
+            return customer
+    raise HTTPException(status_code=404, detail="Customer not found")
