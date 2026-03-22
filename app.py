@@ -4,34 +4,26 @@ from fastapi.requests import Request
 import logging
 import uvicorn
 
-app = FastAPI()
+app = FastAPI(
+    title="Health Check API",
+    description="A simple API to check the health of the service",
+    version="1.0.0"
+)
 
-# Define a custom logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# Create a file handler and a stream handler
-file_handler = logging.FileHandler('health_check.log')
-stream_handler = logging.StreamHandler()
-
-# Create a formatter and attach it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-stream_handler.setFormatter(formatter)
-
-# Add the handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
-
-@app.get("/health-check")
-async def health_check():
+@app.get("/health")
+async def read_health():
     try:
-        # You can add your custom health check logic here
-        # For example, you can check the status of your database connection
-        logger.info("Health check endpoint called")
-        return {"status": "OK"}
+        # Simulating a database connection check
+        # Replace this with your actual database connection check
+        # For demonstration purposes, this will always return True
+        db_connection = True
+        
+        if db_connection:
+            return {"status": "ok"}
+        else:
+            raise HTTPException(status_code=500, detail="Database connection failed")
     except Exception as e:
-        logger.error(f"Error in health check endpoint: {e}")
+        logging.error(f"Error in health check: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 if __name__ == "__main__":
@@ -40,4 +32,4 @@ if __name__ == "__main__":
 # requirements.txt
 # fastapi
 # uvicorn
-# python 3.9 or higher
+# logging
