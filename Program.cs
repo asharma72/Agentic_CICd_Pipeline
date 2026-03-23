@@ -1,40 +1,27 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce API", Version = "v1" });
 });
+builder.Services.AddDbContext<EcommerceDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("EcommerceDb")));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key_here"))
-        };
-    });
-
+// Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
+    options.AddPolicy("AllowAll",
         policy =>
         {
             policy.AllowAnyOrigin()
@@ -42,6 +29,11 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
 });
+
+// Configure DI
+builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<ICategoryService, CategoryService>();
+builder.Services.AddTransient<IOrderService, OrderService>();
 
 var app = builder.Build();
 
@@ -52,58 +44,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ecommerce API v1"));
 }
 
-app.UseCors();
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors("AllowAll");
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.Run();
-
-public class ErrorHandlerMiddleware
-{
-    private readonly RequestDelegate _next;
-
-    public ErrorHandlerMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            await _next(context);
-        }
-        catch (Exception ex)
-        {
-            await HandleExceptionAsync(context, ex);
-        }
-    }
-
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-
-        await context.Response.WriteAsync(new ErrorDetails
-        {
-            StatusCode = context.Response.StatusCode,
-            Message = "Internal Server Error"
-        }.ToString());
-    }
-}
-
-public class ErrorDetails
-{
-    public int StatusCode { get; set; }
-    public string Message { get; set; }
-
-    public override string ToString()
-    {
-        return $"{{\"statusCode\":{StatusCode},\"message\":\"{Message}\"}}";
-    }
-}
