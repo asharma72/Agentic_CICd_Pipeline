@@ -8,4 +8,16 @@ namespace Ecommerce.API.Services
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
     }
+
+    public interface IProductService : IEcommerceService<Product>
+    {
+    }
+
+    public interface IOrderService : IEcommerceService<Order>
+    {
+    }
+
+    public interface ICustomerService : IEcommerceService<Customer>
+    {
+    }
 }
