@@ -16,7 +16,6 @@ namespace Ecommerce.API.Controllers
             _productService = productService;
         }
 
-        // GET: api/products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
         {
@@ -24,7 +23,6 @@ namespace Ecommerce.API.Controllers
             return Ok(products);
         }
 
-        // GET: api/products/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
         {
@@ -36,15 +34,13 @@ namespace Ecommerce.API.Controllers
             return Ok(product);
         }
 
-        // POST: api/products
         [HttpPost]
         public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            var createdProduct = await _productService.CreateProductAsync(product);
-            return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.Id }, createdProduct);
+            var newProduct = await _productService.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, newProduct);
         }
 
-        // PUT: api/products/5
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateProduct(int id, Product product)
         {
@@ -56,7 +52,6 @@ namespace Ecommerce.API.Controllers
             return NoContent();
         }
 
-        // DELETE: api/products/5
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {

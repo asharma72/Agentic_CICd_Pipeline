@@ -18,41 +18,46 @@ namespace Ecommerce.API.Tests.Integration
         }
 
         [Fact]
-        public async Task GetHealth_ReturnsOkResponse()
+        public async Task HealthEndpoint_ReturnsOkResponse()
         {
             var response = await _client.GetAsync("/health");
             Assert.True(response.IsSuccessStatusCode);
         }
 
         [Fact]
-        public async Task PostProduct_CreateProduct_ReturnsCreatedResponse()
-        {
-            var product = new { name = "Test Product", price = 10.99m };
-            var json = System.Text.Json.JsonSerializer.Serialize(product);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-            var response = await _client.PostAsync("/products", content);
-            Assert.True(response.IsSuccessStatusCode);
-        }
-
-        [Fact]
-        public async Task GetProducts_ReturnsOkResponse()
+        public async Task GetAllProducts_ReturnsOkResponse()
         {
             var response = await _client.GetAsync("/products");
             Assert.True(response.IsSuccessStatusCode);
         }
 
         [Fact]
-        public async Task PutProduct_UpdateProduct_ReturnsOkResponse()
+        public async Task GetProductById_ReturnsOkResponse()
         {
-            var product = new { id = 1, name = "Updated Test Product", price = 10.99m };
-            var json = System.Text.Json.JsonSerializer.Serialize(product);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var response = await _client.GetAsync("/products/1");
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task CreateProduct_ReturnsCreatedResponse()
+        {
+            var product = new { Name = "Test Product", Price = 10.99m };
+            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(product), System.Text.Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/products", content);
+            Assert.True(response.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task UpdateProduct_ReturnsOkResponse()
+        {
+            var product = new { Name = "Updated Product", Price = 12.99m };
+            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(product), System.Text.Encoding.UTF8, "application/json");
             var response = await _client.PutAsync("/products/1", content);
             Assert.True(response.IsSuccessStatusCode);
         }
 
         [Fact]
-        public async Task DeleteProduct_DeleteProduct_ReturnsNoContentResponse()
+        public async Task DeleteProduct_ReturnsNoContentResponse()
         {
             var response = await _client.DeleteAsync("/products/1");
             Assert.True(response.IsSuccessStatusCode);
