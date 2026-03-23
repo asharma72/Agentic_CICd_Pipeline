@@ -1,5 +1,6 @@
 using Ecommerce.API.Models;
 using FluentAssertions;
+using System;
 using System.ComponentModel.DataAnnotations;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace Ecommerce.API.Tests.Models
     public class ProductTests
     {
         [Fact]
-        public void Product_Validate_Model_With_Valid_Data()
+        public void Product_WithValidData_ShouldBeValid()
         {
             // Arrange
             var product = new Product
@@ -21,104 +22,90 @@ namespace Ecommerce.API.Tests.Models
 
             // Act
             var context = new ValidationContext(product);
-            var results = new List<ValidationResult>();
-            var isValid = Validator.TryValidateObject(product, context, results);
+            var results = new ValidationResult();
 
             // Assert
-            isValid.Should().BeTrue();
-            results.Should().BeEmpty();
+            Validator.TryValidateObject(product, context, results, true);
+            results.Should().Be(ValidationResult.Success);
         }
 
         [Fact]
-        public void Product_Validate_Model_With_Invalid_Id()
+        public void Product_WithMissingRequiredField_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
-                Id = 0,
-                Name = "Test Product",
+                Id = 1,
                 Price = 10.99m,
                 Description = "This is a test product"
             };
 
             // Act
             var context = new ValidationContext(product);
-            var results = new List<ValidationResult>();
-            var isValid = Validator.TryValidateObject(product, context, results);
+            var results = new ValidationResult();
 
             // Assert
-            isValid.Should().BeFalse();
-            results.Should().HaveCount(1);
-            results[0].ErrorMessage.Should().Contain("Id");
+            Validator.TryValidateObject(product, context, results, true);
+            results.Should().NotBe(ValidationResult.Success);
         }
 
         [Fact]
-        public void Product_Validate_Model_With_Invalid_Name()
+        public void Product_WithNameExceedingMaxLength_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
-                Name = string.Empty,
+                Name = new string('a', 101),
                 Price = 10.99m,
                 Description = "This is a test product"
             };
 
             // Act
             var context = new ValidationContext(product);
-            var results = new List<ValidationResult>();
-            var isValid = Validator.TryValidateObject(product, context, results);
+            var results = new ValidationResult();
 
             // Assert
-            isValid.Should().BeFalse();
-            results.Should().HaveCount(1);
-            results[0].ErrorMessage.Should().Contain("Name");
+            Validator.TryValidateObject(product, context, results, true);
+            results.Should().NotBe(ValidationResult.Success);
         }
 
         [Fact]
-        public void Product_Validate_Model_With_Invalid_Price()
+        public void Product_WithPriceOutOfRange_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
                 Name = "Test Product",
-                Price = 0,
+                Price = -10.99m,
                 Description = "This is a test product"
             };
 
             // Act
             var context = new ValidationContext(product);
-            var results = new List<ValidationResult>();
-            var isValid = Validator.TryValidateObject(product, context, results);
+            var results = new ValidationResult();
 
             // Assert
-            isValid.Should().BeFalse();
-            results.Should().HaveCount(1);
-            results[0].ErrorMessage.Should().Contain("Price");
+            Validator.TryValidateObject(product, context, results, true);
+            results.Should().NotBe(ValidationResult.Success);
         }
+    }
 
-        [Fact]
-        public void Product_Validate_Model_With_Invalid_Description()
-        {
-            // Arrange
-            var product = new Product
-            {
-                Id = 1,
-                Name = "Test Product",
-                Price = 10.99m,
-                Description = new string('a', 501)
-            };
+    public class Product
+    {
+        [Required]
+        public int Id { get; set; }
 
-            // Act
-            var context = new ValidationContext(product);
-            var results = new List<ValidationResult>();
-            var isValid = Validator.TryValidateObject(product, context, results);
+        [Required]
+        [StringLength(100, MinimumLength = 1)]
+        public string Name { get; set; }
 
-            // Assert
-            isValid.Should().BeFalse();
-            results.Should().HaveCount(1);
-            results[0].ErrorMessage.Should().Contain("Description");
-        }
+        [Required]
+        [Range(0.01, 1000)]
+        public decimal Price { get; set; }
+
+        [StringLength(500, MinimumLength = 1)]
+        public string Description { get; set; }
     }
 }

@@ -1,27 +1,37 @@
+using Ecommerce.API.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.API.Services
 {
     public class EcommerceService : IEcommerceService
     {
-        private readonly List<Ecommerce> _ecommences;
-        private readonly ILogger<EcommerceService> _logger;
+        private readonly List<Ecommerce> _ecommereceList;
+        private readonly ILogger _logger;
 
         public EcommerceService(ILogger<EcommerceService> logger)
         {
             _logger = logger;
-            _ecommences = new List<Ecommerce>();
+            _ecommereceList = new List<Ecommerce>();
         }
 
         public Ecommerce AddEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                _ecommences.Add(ecommerce);
-                _logger.LogInformation($"Ecommerce added with id: {ecommerce.Id}");
+                if (ecommerce == null)
+                {
+                    throw new ArgumentNullException(nameof(ecommerce), "Ecommerce cannot be null");
+                }
+
+                if (_ecommereceList.Any(e => e.Id == ecommerce.Id))
+                {
+                    throw new InvalidOperationException("Ecommerce with the same id already exists");
+                }
+
+                _ecommereceList.Add(ecommerce);
                 return ecommerce;
             }
             catch (Exception ex)
@@ -31,30 +41,11 @@ namespace Ecommerce.API.Services
             }
         }
 
-        public List<Ecommerce> GetAllEcommerces()
-        {
-            try
-            {
-                return _ecommences.ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all ecommerces");
-                throw;
-            }
-        }
-
         public Ecommerce GetEcommerceById(int id)
         {
             try
             {
-                var ecommerce = _ecommences.FirstOrDefault(e => e.Id == id);
-                if (ecommerce == null)
-                {
-                    _logger.LogInformation($"Ecommerce not found with id: {id}");
-                    throw new InvalidOperationException($"Ecommerce not found with id: {id}");
-                }
-                return ecommerce;
+                return _ecommereceList.FirstOrDefault(e => e.Id == id);
             }
             catch (Exception ex)
             {
@@ -63,19 +54,36 @@ namespace Ecommerce.API.Services
             }
         }
 
+        public List<Ecommerce> GetAllEcommerces()
+        {
+            try
+            {
+                return _ecommereceList.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all ecommerces");
+                throw;
+            }
+        }
+
         public Ecommerce UpdateEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                var existingEcommerce = _ecommences.FirstOrDefault(e => e.Id == ecommerce.Id);
+                if (ecommerce == null)
+                {
+                    throw new ArgumentNullException(nameof(ecommerce), "Ecommerce cannot be null");
+                }
+
+                var existingEcommerce = _ecommereceList.FirstOrDefault(e => e.Id == ecommerce.Id);
                 if (existingEcommerce == null)
                 {
-                    _logger.LogInformation($"Ecommerce not found with id: {ecommerce.Id}");
-                    throw new InvalidOperationException($"Ecommerce not found with id: {ecommerce.Id}");
+                    throw new InvalidOperationException("Ecommerce not found");
                 }
+
                 existingEcommerce.Name = ecommerce.Name;
                 existingEcommerce.Description = ecommerce.Description;
-                _logger.LogInformation($"Ecommerce updated with id: {ecommerce.Id}");
                 return existingEcommerce;
             }
             catch (Exception ex)
@@ -89,14 +97,13 @@ namespace Ecommerce.API.Services
         {
             try
             {
-                var ecommerce = _ecommences.FirstOrDefault(e => e.Id == id);
+                var ecommerce = _ecommereceList.FirstOrDefault(e => e.Id == id);
                 if (ecommerce == null)
                 {
-                    _logger.LogInformation($"Ecommerce not found with id: {id}");
-                    throw new InvalidOperationException($"Ecommerce not found with id: {id}");
+                    throw new InvalidOperationException("Ecommerce not found");
                 }
-                _ecommences.Remove(ecommerce);
-                _logger.LogInformation($"Ecommerce deleted with id: {id}");
+
+                _ecommereceList.Remove(ecommerce);
             }
             catch (Exception ex)
             {
@@ -104,21 +111,5 @@ namespace Ecommerce.API.Services
                 throw;
             }
         }
-    }
-
-    public interface IEcommerceService
-    {
-        Ecommerce AddEcommerce(Ecommerce ecommerce);
-        List<Ecommerce> GetAllEcommerces();
-        Ecommerce GetEcommerceById(int id);
-        Ecommerce UpdateEcommerce(Ecommerce ecommerce);
-        void DeleteEcommerce(int id);
-    }
-
-    public class Ecommerce
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
     }
 }

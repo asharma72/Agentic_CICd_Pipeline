@@ -1,50 +1,64 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
-using EcommerceApi.Data;
-using EcommerceApi.Services;
-using EcommerceApi.Controllers;
+using Ecommerce.Models;
+using Ecommerce.Repositories;
+using Ecommerce.Services;
+using Ecommerce.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EcommerceApi", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce API", Version = "v1" });
 });
-
 builder.Services.AddDbContext<EcommerceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("EcommerceDb")));
-
-builder.Services.AddTransient<IProductService, ProductService>();
-builder.Services.AddTransient<ICategoryService, CategoryService>();
-builder.Services.AddTransient<IOrderService, OrderService>();
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Authority = builder.Configuration["Auth0:Domain"];
+    options.Audience = builder.Configuration["Auth0:Audience"];
+});
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
+    options.AddDefaultPolicy(
         policy =>
         {
-            policy.AllowAnyOrigin();
-            policy.AllowAnyMethod();
-            policy.AllowAnyHeader();
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
         });
 });
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EcommerceApi v1"));
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ecommerce API v1"));
 }
 
-app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+
+app.UseCors();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -53,26 +67,9 @@ app.UseExceptionHandler(appError =>
 {
     appError.Run(async context =>
     {
-        context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-        context.Response.ContentType = "application/json";
-
-        await context.Response.WriteAsync(new ErrorDetails
-        {
-            StatusCode = context.Response.StatusCode,
-            Message = "Internal Server Error."
-        }.ToString());
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("An error occurred while processing your request.");
     });
 });
 
 app.Run();
-
-public class ErrorDetails
-{
-    public int StatusCode { get; set; }
-    public string Message { get; set; }
-
-    public override string ToString()
-    {
-        return $"{{\"statusCode\": {StatusCode}, \"message\": \"{Message}\"}}";
-    }
-}
