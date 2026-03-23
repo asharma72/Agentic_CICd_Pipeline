@@ -3,111 +3,34 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.API.Models
 {
-    public class ProductModel
+    public class Product
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "Product name is required")]
+        [StringLength(100, ErrorMessage = "Product name should not exceed 100 characters")]
         public string Name { get; set; }
 
-        [Required]
-        [StringLength(500)]
+        [Required(ErrorMessage = "Product description is required")]
+        [StringLength(500, ErrorMessage = "Product description should not exceed 500 characters")]
         public string Description { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Product price is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Product price should be a positive number")]
         public decimal Price { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Product quantity is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Product quantity should be a positive integer")]
         public int Quantity { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "Product category is required")]
+        [StringLength(50, ErrorMessage = "Product category should not exceed 50 characters")]
         public string Category { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string Brand { get; set; }
-
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "Product image URL is required")]
+        [StringLength(200, ErrorMessage = "Product image URL should not exceed 200 characters")]
         public string ImageUrl { get; set; }
-
-        [Required]
-        public bool IsActive { get; set; }
-
-        [Required]
-        public DateTime CreatedDate { get; set; }
-
-        [Required]
-        public DateTime UpdatedDate { get; set; }
-    }
-
-    public class OrderModel
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
-        [Required]
-        public int ProductId { get; set; }
-
-        [Required]
-        public int Quantity { get; set; }
-
-        [Required]
-        public decimal TotalPrice { get; set; }
-
-        [Required]
-        public string CustomerName { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string CustomerEmail { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string CustomerPhone { get; set; }
-
-        [Required]
-        [StringLength(500)]
-        public string Address { get; set; }
-
-        [Required]
-        public DateTime OrderDate { get; set; }
-
-        [Required]
-        public bool IsDelivered { get; set; }
-    }
-
-    public class CustomerModel
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string Email { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string Phone { get; set; }
-
-        [Required]
-        [StringLength(500)]
-        public string Address { get; set; }
-
-        [Required]
-        public DateTime CreatedDate { get; set; }
-
-        [Required]
-        public DateTime UpdatedDate { get; set; }
     }
 }
