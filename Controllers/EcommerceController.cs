@@ -1,7 +1,6 @@
 using Ecommerce.API.Models;
 using Ecommerce.API.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Ecommerce.API.Controllers
 {
@@ -37,8 +36,8 @@ namespace Ecommerce.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            var newProduct = await _productService.CreateProductAsync(product);
-            return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, newProduct);
+            var createdProduct = await _productService.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.Id }, createdProduct);
         }
 
         [HttpPut("{id}")]

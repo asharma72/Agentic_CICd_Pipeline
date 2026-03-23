@@ -7,40 +7,40 @@ namespace Ecommerce.API.Services
 {
     public class EcommerceService : IEcommerceService
     {
-        private readonly List<Ecommerce> _ecommmerces;
-        private readonly ILogger<EcommerceService> _logger;
+        private readonly List<Ecommerce> _ecommereces;
+        private readonly ILogger _logger;
 
         public EcommerceService(ILogger<EcommerceService> logger)
         {
+            _ecommereces = new List<Ecommerce>();
             _logger = logger;
-            _ecommmerces = new List<Ecommerce>();
         }
 
         public Ecommerce AddEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                _ecommmerces.Add(ecommerce);
-                _logger.LogInformation($"Ecommerce added successfully: {ecommerce.Id}");
+                _ecommereces.Add(ecommerce);
+                _logger.LogInformation($"Ecommerce with id {ecommerce.Id} added successfully.");
                 return ecommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding ecommerce");
-                throw;
+                _logger.LogError(ex, "Error adding ecommerce.");
+                throw new ServiceException("Error adding ecommerce.", ex);
             }
         }
 
-        public IEnumerable<Ecommerce> GetAllEcommerces()
+        public List<Ecommerce> GetAllEcommerces()
         {
             try
             {
-                return _ecommmerces.ToList();
+                return _ecommereces.ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting all ecommerces");
-                throw;
+                _logger.LogError(ex, "Error getting all ecommerces.");
+                throw new ServiceException("Error getting all ecommerces.", ex);
             }
         }
 
@@ -48,19 +48,18 @@ namespace Ecommerce.API.Services
         {
             try
             {
-                var ecommerce = _ecommmerces.FirstOrDefault(e => e.Id == id);
+                var ecommerce = _ecommereces.FirstOrDefault(e => e.Id == id);
                 if (ecommerce == null)
                 {
-                    _logger.LogWarning($"Ecommerce not found: {id}");
-                    throw new InvalidOperationException($"Ecommerce not found: {id}");
+                    _logger.LogInformation($"Ecommerce with id {id} not found.");
+                    throw new ServiceException($"Ecommerce with id {id} not found.");
                 }
-                _logger.LogInformation($"Ecommerce found: {id}");
                 return ecommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting ecommerce by id");
-                throw;
+                _logger.LogError(ex, "Error getting ecommerce by id.");
+                throw new ServiceException("Error getting ecommerce by id.", ex);
             }
         }
 
@@ -68,21 +67,21 @@ namespace Ecommerce.API.Services
         {
             try
             {
-                var existingEcommerce = _ecommmerces.FirstOrDefault(e => e.Id == ecommerce.Id);
+                var existingEcommerce = _ecommereces.FirstOrDefault(e => e.Id == ecommerce.Id);
                 if (existingEcommerce == null)
                 {
-                    _logger.LogWarning($"Ecommerce not found: {ecommerce.Id}");
-                    throw new InvalidOperationException($"Ecommerce not found: {ecommerce.Id}");
+                    _logger.LogInformation($"Ecommerce with id {ecommerce.Id} not found.");
+                    throw new ServiceException($"Ecommerce with id {ecommerce.Id} not found.");
                 }
-                _ecommmerces.Remove(existingEcommerce);
-                _ecommmerces.Add(ecommerce);
-                _logger.LogInformation($"Ecommerce updated successfully: {ecommerce.Id}");
-                return ecommerce;
+                existingEcommerce.Name = ecommerce.Name;
+                existingEcommerce.Description = ecommerce.Description;
+                _logger.LogInformation($"Ecommerce with id {ecommerce.Id} updated successfully.");
+                return existingEcommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating ecommerce");
-                throw;
+                _logger.LogError(ex, "Error updating ecommerce.");
+                throw new ServiceException("Error updating ecommerce.", ex);
             }
         }
 
@@ -90,20 +89,42 @@ namespace Ecommerce.API.Services
         {
             try
             {
-                var ecommerce = _ecommmerces.FirstOrDefault(e => e.Id == id);
+                var ecommerce = _ecommereces.FirstOrDefault(e => e.Id == id);
                 if (ecommerce == null)
                 {
-                    _logger.LogWarning($"Ecommerce not found: {id}");
-                    throw new InvalidOperationException($"Ecommerce not found: {id}");
+                    _logger.LogInformation($"Ecommerce with id {id} not found.");
+                    throw new ServiceException($"Ecommerce with id {id} not found.");
                 }
-                _ecommmerces.Remove(ecommerce);
-                _logger.LogInformation($"Ecommerce deleted successfully: {id}");
+                _ecommereces.Remove(ecommerce);
+                _logger.LogInformation($"Ecommerce with id {id} deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting ecommerce");
-                throw;
+                _logger.LogError(ex, "Error deleting ecommerce.");
+                throw new ServiceException("Error deleting ecommerce.", ex);
             }
         }
+    }
+
+    public interface IEcommerceService
+    {
+        Ecommerce AddEcommerce(Ecommerce ecommerce);
+        List<Ecommerce> GetAllEcommerces();
+        Ecommerce GetEcommerceById(int id);
+        Ecommerce UpdateEcommerce(Ecommerce ecommerce);
+        void DeleteEcommerce(int id);
+    }
+
+    public class Ecommerce
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class ServiceException : Exception
+    {
+        public ServiceException(string message) : base(message) { }
+        public ServiceException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

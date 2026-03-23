@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -6,7 +7,6 @@ namespace Ecommerce.API.Models
     public class Product
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
@@ -18,7 +18,7 @@ namespace Ecommerce.API.Models
         public string Description { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue)]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal Price { get; set; }
 
         [Required]
@@ -32,70 +32,66 @@ namespace Ecommerce.API.Models
         [StringLength(100)]
         public string SubCategory { get; set; }
 
-        public string ImageUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+    }
+
+    public class Customer
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string FirstName { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string LastName { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        [Phone]
+        public string PhoneNumber { get; set; }
+
+        [Required]
+        [StringLength(200)]
+        public string Address { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
     }
 
     public class Order
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
         public int CustomerId { get; set; }
 
         [Required]
-        public DateTime OrderDate { get; set; }
-
-        [Required]
-        [Range(0, double.MaxValue)]
-        public decimal Total { get; set; }
-
-        public bool IsShipped { get; set; }
-
-        public bool IsDelivered { get; set; }
-    }
-
-    public class OrderItem
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
-        [Required]
-        public int OrderId { get; set; }
-
-        [Required]
         public int ProductId { get; set; }
 
         [Required]
-        public int Quantity { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal Total { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue)]
-        public decimal Price { get; set; }
-    }
-
-    public class Customer
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public DateTime OrderDate { get; set; }
 
         [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
+        public string Status { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string Email { get; set; }
+        public DateTime CreatedAt { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string Address { get; set; }
-
-        [Required]
-        [StringLength(20)]
-        public string Phone { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
