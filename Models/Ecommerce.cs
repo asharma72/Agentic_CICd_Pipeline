@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.API.Models
 {
-    public class Product
+    public class ProductModel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,7 +18,6 @@ namespace Ecommerce.API.Models
         public string Description { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
 
         [Required]
@@ -30,42 +29,27 @@ namespace Ecommerce.API.Models
 
         [Required]
         [StringLength(100)]
-        public string SubCategory { get; set; }
+        public string Brand { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [StringLength(100)]
         public string ImageUrl { get; set; }
+
+        [Required]
+        public bool IsActive { get; set; }
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
+
+        [Required]
+        public DateTime UpdatedDate { get; set; }
     }
 
-    public class Order
+    public class OrderModel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
-        [Required]
-        public int UserId { get; set; }
-
-        [Required]
-        public DateTime OrderDate { get; set; }
-
-        [Required]
-        [Range(0, double.MaxValue)]
-        public decimal Total { get; set; }
-
-        [Required]
-        [StringLength(200)]
-        public string Status { get; set; }
-    }
-
-    public class OrderItem
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
-        [Required]
-        public int OrderId { get; set; }
 
         [Required]
         public int ProductId { get; set; }
@@ -74,11 +58,31 @@ namespace Ecommerce.API.Models
         public int Quantity { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue)]
-        public decimal Price { get; set; }
+        public decimal TotalPrice { get; set; }
+
+        [Required]
+        public string CustomerName { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string CustomerEmail { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string CustomerPhone { get; set; }
+
+        [Required]
+        [StringLength(500)]
+        public string Address { get; set; }
+
+        [Required]
+        public DateTime OrderDate { get; set; }
+
+        [Required]
+        public bool IsDelivered { get; set; }
     }
 
-    public class User
+    public class CustomerModel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -86,22 +90,24 @@ namespace Ecommerce.API.Models
 
         [Required]
         [StringLength(100)]
-        public string FirstName { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string LastName { get; set; }
+        public string Name { get; set; }
 
         [Required]
         [StringLength(100)]
         public string Email { get; set; }
 
         [Required]
-        [StringLength(20)]
+        [StringLength(100)]
         public string Phone { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [StringLength(500)]
         public string Address { get; set; }
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
+
+        [Required]
+        public DateTime UpdatedDate { get; set; }
     }
 }

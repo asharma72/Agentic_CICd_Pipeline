@@ -1,12 +1,13 @@
 using Ecommerce.API.Controllers;
+using Ecommerce.API.Models;
 using Ecommerce.API.Services;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
+using FluentAssertions;
 
 namespace Ecommerce.API.Tests.Controllers
 {
@@ -25,7 +26,7 @@ namespace Ecommerce.API.Tests.Controllers
         public async Task GetAll_ShouldReturn200_WithItems()
         {
             // Arrange
-            var items = new List<Ecommerce> { new Ecommerce { Id = 1 }, new Ecommerce { Id = 2 } };
+            var items = new List<Ecommerce> { new Ecommerce(), new Ecommerce() };
             _mockService.Setup(s => s.GetAllAsync())
                 .ReturnsAsync(items);
 
@@ -37,12 +38,26 @@ namespace Ecommerce.API.Tests.Controllers
             result?.Value.Should().BeEquivalentTo(items);
         }
 
-        [Theory]
-        [InlineData(1)]
-        [InlineData(2)]
-        public async Task GetById_ShouldReturn200_WithItem(int id)
+        [Fact]
+        public async Task GetAll_ShouldReturn200_WithNoItems()
         {
             // Arrange
+            _mockService.Setup(s => s.GetAllAsync())
+                .ReturnsAsync(new List<Ecommerce>());
+
+            // Act
+            var result = await _controller.GetAll() as OkObjectResult;
+
+            // Assert
+            result?.StatusCode.Should().Be(200);
+            result?.Value.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetById_ShouldReturn200_WithItem()
+        {
+            // Arrange
+            var id = 1;
             var item = new Ecommerce { Id = id };
             _mockService.Setup(s => s.GetByIdAsync(id))
                 .ReturnsAsync(item);
@@ -56,14 +71,15 @@ namespace Ecommerce.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetById_ShouldReturn404_WithInvalidId()
+        public async Task GetById_ShouldReturn404_WithNoItem()
         {
             // Arrange
-            _mockService.Setup(s => s.GetByIdAsync(1))
+            var id = 1;
+            _mockService.Setup(s => s.GetByIdAsync(id))
                 .ReturnsAsync((Ecommerce)null);
 
             // Act
-            var result = await _controller.GetById(1) as NotFoundResult;
+            var result = await _controller.GetById(id) as NotFoundResult;
 
             // Assert
             result?.StatusCode.Should().Be(404);
@@ -73,8 +89,8 @@ namespace Ecommerce.API.Tests.Controllers
         public async Task Create_ShouldReturn201_WithItem()
         {
             // Arrange
-            var item = new Ecommerce { Id = 1 };
-            _mockService.Setup(s => s.CreateAsync(It.IsAny<Ecommerce>()))
+            var item = new Ecommerce();
+            _mockService.Setup(s => s.CreateAsync(item))
                 .ReturnsAsync(item);
 
             // Act
@@ -89,27 +105,27 @@ namespace Ecommerce.API.Tests.Controllers
         public async Task Create_ShouldReturn400_WithInvalidItem()
         {
             // Arrange
-            var item = new Ecommerce { Id = 0 };
-            _mockService.Setup(s => s.CreateAsync(It.IsAny<Ecommerce>()))
-                .Throws(new Exception());
+            _controller.ModelState.AddModelError("Error", "Invalid item");
 
             // Act
-            var result = await _controller.Create(item) as BadRequestObjectResult;
+            var result = await _controller.Create(new Ecommerce()) as BadRequestObjectResult;
 
             // Assert
             result?.StatusCode.Should().Be(400);
         }
 
-        [Fact]
-        public async Task Update_ShouldReturn200_WithItem()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        public async Task Update_ShouldReturn200_WithItem(int id)
         {
             // Arrange
-            var item = new Ecommerce { Id = 1 };
-            _mockService.Setup(s => s.UpdateAsync(It.IsAny<Ecommerce>()))
+            var item = new Ecommerce { Id = id };
+            _mockService.Setup(s => s.UpdateAsync(item))
                 .ReturnsAsync(item);
 
             // Act
-            var result = await _controller.Update(item) as OkObjectResult;
+            var result = await _controller.Update(id, item) as OkObjectResult;
 
             // Assert
             result?.StatusCode.Should().Be(200);
@@ -117,43 +133,61 @@ namespace Ecommerce.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task Update_ShouldReturn404_WithInvalidId()
+        public async Task Update_ShouldReturn404_WithNoItem()
         {
             // Arrange
-            var item = new Ecommerce { Id = 1 };
-            _mockService.Setup(s => s.UpdateAsync(It.IsAny<Ecommerce>()))
-                .Throws(new Exception());
+            var id = 1;
+            var item = new Ecommerce { Id = id };
+            _mockService.Setup(s => s.UpdateAsync(item))
+                .ReturnsAsync((Ecommerce)null);
 
             // Act
-            var result = await _controller.Update(item) as NotFoundResult;
+            var result = await _controller.Update(id, item) as NotFoundResult;
 
             // Assert
             result?.StatusCode.Should().Be(404);
         }
 
         [Fact]
-        public async Task Delete_ShouldReturn200()
+        public async Task Update_ShouldReturn400_WithInvalidItem()
         {
             // Arrange
-            _mockService.Setup(s => s.DeleteAsync(1))
-                .ReturnsAsync(true);
+            _controller.ModelState.AddModelError("Error", "Invalid item");
 
             // Act
-            var result = await _controller.Delete(1) as OkResult;
+            var result = await _controller.Update(1, new Ecommerce()) as BadRequestObjectResult;
 
             // Assert
-            result?.StatusCode.Should().Be(200);
+            result?.StatusCode.Should().Be(400);
         }
 
         [Fact]
-        public async Task Delete_ShouldReturn404_WithInvalidId()
+        public async Task Delete_ShouldReturn200_WithItem()
         {
             // Arrange
-            _mockService.Setup(s => s.DeleteAsync(1))
-                .ReturnsAsync(false);
+            var id = 1;
+            var item = new Ecommerce { Id = id };
+            _mockService.Setup(s => s.DeleteAsync(id))
+                .ReturnsAsync(item);
 
             // Act
-            var result = await _controller.Delete(1) as NotFoundResult;
+            var result = await _controller.Delete(id) as OkObjectResult;
+
+            // Assert
+            result?.StatusCode.Should().Be(200);
+            result?.Value.Should().BeEquivalentTo(item);
+        }
+
+        [Fact]
+        public async Task Delete_ShouldReturn404_WithNoItem()
+        {
+            // Arrange
+            var id = 1;
+            _mockService.Setup(s => s.DeleteAsync(id))
+                .ReturnsAsync((Ecommerce)null);
+
+            // Act
+            var result = await _controller.Delete(id) as NotFoundResult;
 
             // Assert
             result?.StatusCode.Should().Be(404);
