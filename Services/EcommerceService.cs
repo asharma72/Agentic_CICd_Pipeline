@@ -1,33 +1,69 @@
+using Ecommerce.API.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.API.Services
 {
     public class EcommerceService : IEcommerceService
     {
-        private readonly List<Ecommerce> _ecommmerceList;
+        private readonly List<Ecommerce> _ecommerces;
         private readonly ILogger _logger;
 
         public EcommerceService(ILogger<EcommerceService> logger)
         {
-            _ecommmerceList = new List<Ecommerce>();
             _logger = logger;
+            _ecommerces = new List<Ecommerce>();
         }
 
         public Ecommerce AddEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                _ecommmerceList.Add(ecommerce);
-                _logger.LogInformation("Ecommerce added successfully");
+                ecommerce.Id = Guid.NewGuid();
+                _ecommerces.Add(ecommerce);
+                _logger.LogInformation($"Ecommerce added successfully. Id: {ecommerce.Id}");
                 return ecommerce;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding ecommerce");
-                throw;
+                throw new InvalidOperationException("Failed to add ecommerce", ex);
+            }
+        }
+
+        public Ecommerce GetEcommerce(Guid id)
+        {
+            try
+            {
+                var ecommerce = _ecommerces.FirstOrDefault(e => e.Id == id);
+                if (ecommerce == null)
+                {
+                    _logger.LogWarning($"Ecommerce not found. Id: {id}");
+                    throw new InvalidOperationException("Ecommerce not found");
+                }
+                _logger.LogInformation($"Ecommerce retrieved successfully. Id: {id}");
+                return ecommerce;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ecommerce");
+                throw new InvalidOperationException("Failed to retrieve ecommerce", ex);
+            }
+        }
+
+        public List<Ecommerce> GetEcommerces()
+        {
+            try
+            {
+                _logger.LogInformation("Ecommerces retrieved successfully");
+                return _ecommerces.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ecommerces");
+                throw new InvalidOperationException("Failed to retrieve ecommerces", ex);
             }
         }
 
@@ -35,84 +71,41 @@ namespace Ecommerce.API.Services
         {
             try
             {
-                var existingEcommerce = _ecommmerceList.FirstOrDefault(e => e.Id == ecommerce.Id);
-                if (existingEcommerce != null)
+                var existingEcommerce = _ecommerces.FirstOrDefault(e => e.Id == ecommerce.Id);
+                if (existingEcommerce == null)
                 {
-                    existingEcommerce.Name = ecommerce.Name;
-                    existingEcommerce.Description = ecommerce.Description;
-                    _logger.LogInformation("Ecommerce updated successfully");
-                    return existingEcommerce;
-                }
-                else
-                {
-                    _logger.LogWarning("Ecommerce not found");
+                    _logger.LogWarning($"Ecommerce not found. Id: {ecommerce.Id}");
                     throw new InvalidOperationException("Ecommerce not found");
                 }
+                existingEcommerce.Name = ecommerce.Name;
+                existingEcommerce.Description = ecommerce.Description;
+                _logger.LogInformation($"Ecommerce updated successfully. Id: {ecommerce.Id}");
+                return existingEcommerce;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating ecommerce");
-                throw;
+                throw new InvalidOperationException("Failed to update ecommerce", ex);
             }
         }
 
-        public void DeleteEcommerce(int id)
+        public void DeleteEcommerce(Guid id)
         {
             try
             {
-                var ecommerce = _ecommmerceList.FirstOrDefault(e => e.Id == id);
-                if (ecommerce != null)
+                var ecommerce = _ecommerces.FirstOrDefault(e => e.Id == id);
+                if (ecommerce == null)
                 {
-                    _ecommmerceList.Remove(ecommerce);
-                    _logger.LogInformation("Ecommerce deleted successfully");
-                }
-                else
-                {
-                    _logger.LogWarning("Ecommerce not found");
+                    _logger.LogWarning($"Ecommerce not found. Id: {id}");
                     throw new InvalidOperationException("Ecommerce not found");
                 }
+                _ecommerces.Remove(ecommerce);
+                _logger.LogInformation($"Ecommerce deleted successfully. Id: {id}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting ecommerce");
-                throw;
-            }
-        }
-
-        public Ecommerce GetEcommerce(int id)
-        {
-            try
-            {
-                var ecommerce = _ecommmerceList.FirstOrDefault(e => e.Id == id);
-                if (ecommerce != null)
-                {
-                    _logger.LogInformation("Ecommerce retrieved successfully");
-                    return ecommerce;
-                }
-                else
-                {
-                    _logger.LogWarning("Ecommerce not found");
-                    throw new InvalidOperationException("Ecommerce not found");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving ecommerce");
-                throw;
-            }
-        }
-
-        public List<Ecommerce> GetAllEcommerce()
-        {
-            try
-            {
-                _logger.LogInformation("Ecommerce list retrieved successfully");
-                return _ecommmerceList;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving ecommerce list");
-                throw;
+                throw new InvalidOperationException("Failed to delete ecommerce", ex);
             }
         }
     }

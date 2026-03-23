@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -8,32 +9,49 @@ namespace Ecommerce.API.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Product name is required")]
-        [StringLength(100, ErrorMessage = "Product name cannot exceed 100 characters")]
+        [Required]
+        [StringLength(100, ErrorMessage = "Product name cannot be longer than 100 characters")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Product description is required")]
-        [StringLength(500, ErrorMessage = "Product description cannot exceed 500 characters")]
+        [Required]
+        [StringLength(500, ErrorMessage = "Product description cannot be longer than 500 characters")]
         public string Description { get; set; }
 
-        [Required(ErrorMessage = "Product price is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Product price must be greater than or equal to 0")]
+        [Required]
+        [Range(0, 100000, ErrorMessage = "Price must be between 0 and 100000")]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Product category is required")]
-        [StringLength(50, ErrorMessage = "Product category cannot exceed 50 characters")]
-        public string Category { get; set; }
+        [Required]
+        public int Quantity { get; set; }
 
-        [Required(ErrorMessage = "Product image is required")]
-        [StringLength(200, ErrorMessage = "Product image cannot exceed 200 characters")]
-        public string Image { get; set; }
-
-        [Required(ErrorMessage = "Product stock is required")]
-        [Range(0, int.MaxValue, ErrorMessage = "Product stock must be greater than or equal to 0")]
-        public int Stock { get; set; }
-
+        [Required]
         public DateTime CreatedAt { get; set; }
 
+        [Required]
+        public DateTime UpdatedAt { get; set; }
+
+        [ForeignKey("Category")]
+        public int CategoryId { get; set; }
+        public Category Category { get; set; }
+    }
+
+    public class Category
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "Category name cannot be longer than 100 characters")]
+        public string Name { get; set; }
+
+        [Required]
+        [StringLength(500, ErrorMessage = "Category description cannot be longer than 500 characters")]
+        public string Description { get; set; }
+
+        [Required]
+        public DateTime CreatedAt { get; set; }
+
+        [Required]
         public DateTime UpdatedAt { get; set; }
     }
 
@@ -42,20 +60,17 @@ namespace Ecommerce.API.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Order customer is required")]
-        [StringLength(100, ErrorMessage = "Order customer cannot exceed 100 characters")]
-        public string Customer { get; set; }
-
-        [Required(ErrorMessage = "Order date is required")]
+        [Required]
         public DateTime OrderDate { get; set; }
 
-        [Required(ErrorMessage = "Order total is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Order total must be greater than or equal to 0")]
+        [Required]
         public decimal Total { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+        [Required]
+        public int CustomerId { get; set; }
+        public Customer Customer { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
+        public ICollection<OrderItem> OrderItems { get; set; }
     }
 
     public class OrderItem
@@ -63,23 +78,19 @@ namespace Ecommerce.API.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Order item order is required")]
+        [Required]
         public int OrderId { get; set; }
+        public Order Order { get; set; }
 
-        [Required(ErrorMessage = "Order item product is required")]
+        [Required]
         public int ProductId { get; set; }
+        public Product Product { get; set; }
 
-        [Required(ErrorMessage = "Order item quantity is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Order item quantity must be greater than 0")]
+        [Required]
         public int Quantity { get; set; }
 
-        [Required(ErrorMessage = "Order item price is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Order item price must be greater than or equal to 0")]
+        [Required]
         public decimal Price { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime UpdatedAt { get; set; }
     }
 
     public class Customer
@@ -87,25 +98,22 @@ namespace Ecommerce.API.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Customer name is required")]
-        [StringLength(100, ErrorMessage = "Customer name cannot exceed 100 characters")]
+        [Required]
+        [StringLength(100, ErrorMessage = "Customer name cannot be longer than 100 characters")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Customer email is required")]
-        [StringLength(100, ErrorMessage = "Customer email cannot exceed 100 characters")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
+        [Required]
+        [StringLength(100, ErrorMessage = "Customer email cannot be longer than 100 characters")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Customer phone is required")]
-        [StringLength(20, ErrorMessage = "Customer phone cannot exceed 20 characters")]
+        [Required]
+        [StringLength(100, ErrorMessage = "Customer phone cannot be longer than 100 characters")]
         public string Phone { get; set; }
 
-        [Required(ErrorMessage = "Customer address is required")]
-        [StringLength(200, ErrorMessage = "Customer address cannot exceed 200 characters")]
-        public string Address { get; set; }
-
+        [Required]
         public DateTime CreatedAt { get; set; }
 
+        [Required]
         public DateTime UpdatedAt { get; set; }
     }
 }
