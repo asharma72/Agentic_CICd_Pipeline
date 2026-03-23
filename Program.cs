@@ -1,11 +1,11 @@
-using EcommerceApi.Services;
-using EcommerceApi.Middleware;
+using EmployeeApi.Services;
+using EmployeeApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IEcommerceService, EcommerceService>();
+builder.Services.AddSingleton<IEmployeeService, EmployeeService>();
 builder.Services.AddCors(options => options.AddPolicy("AllowAll",
     p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
