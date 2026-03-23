@@ -1,6 +1,5 @@
 using Ecommerce.API.Models;
 using FluentAssertions;
-using System;
 using System.ComponentModel.DataAnnotations;
 using Xunit;
 
@@ -9,7 +8,7 @@ namespace Ecommerce.API.Tests.Models
     public class ProductTests
     {
         [Fact]
-        public void Product_WithValidData_ShouldBeValid()
+        public void Product_ValidModel_IsValid()
         {
             // Arrange
             var product = new Product
@@ -22,15 +21,38 @@ namespace Ecommerce.API.Tests.Models
 
             // Act
             var context = new ValidationContext(product);
-            var results = new ValidationResult();
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
 
             // Assert
-            Validator.TryValidateObject(product, context, results, true);
-            results.Should().Be(ValidationResult.Success);
+            isValid.Should().BeTrue();
         }
 
         [Fact]
-        public void Product_WithMissingRequiredField_ShouldBeInvalid()
+        public void Product_InvalidId_IsInvalid()
+        {
+            // Arrange
+            var product = new Product
+            {
+                Id = 0,
+                Name = "Test Product",
+                Price = 10.99m,
+                Description = "This is a test product"
+            };
+
+            // Act
+            var context = new ValidationContext(product);
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
+
+            // Assert
+            isValid.Should().BeFalse();
+            results.Should().HaveCount(1);
+            results[0].ErrorMessage.Should().Contain("Id");
+        }
+
+        [Fact]
+        public void Product_MissingName_IsInvalid()
         {
             // Arrange
             var product = new Product
@@ -42,15 +64,17 @@ namespace Ecommerce.API.Tests.Models
 
             // Act
             var context = new ValidationContext(product);
-            var results = new ValidationResult();
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
 
             // Assert
-            Validator.TryValidateObject(product, context, results, true);
-            results.Should().NotBe(ValidationResult.Success);
+            isValid.Should().BeFalse();
+            results.Should().HaveCount(1);
+            results[0].ErrorMessage.Should().Contain("Name");
         }
 
         [Fact]
-        public void Product_WithNameExceedingMaxLength_ShouldBeInvalid()
+        public void Product_NameTooLong_IsInvalid()
         {
             // Arrange
             var product = new Product
@@ -63,15 +87,17 @@ namespace Ecommerce.API.Tests.Models
 
             // Act
             var context = new ValidationContext(product);
-            var results = new ValidationResult();
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
 
             // Assert
-            Validator.TryValidateObject(product, context, results, true);
-            results.Should().NotBe(ValidationResult.Success);
+            isValid.Should().BeFalse();
+            results.Should().HaveCount(1);
+            results[0].ErrorMessage.Should().Contain("Name");
         }
 
         [Fact]
-        public void Product_WithPriceOutOfRange_ShouldBeInvalid()
+        public void Product_InvalidPrice_IsInvalid()
         {
             // Arrange
             var product = new Product
@@ -84,28 +110,58 @@ namespace Ecommerce.API.Tests.Models
 
             // Act
             var context = new ValidationContext(product);
-            var results = new ValidationResult();
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
 
             // Assert
-            Validator.TryValidateObject(product, context, results, true);
-            results.Should().NotBe(ValidationResult.Success);
+            isValid.Should().BeFalse();
+            results.Should().HaveCount(1);
+            results[0].ErrorMessage.Should().Contain("Price");
         }
-    }
 
-    public class Product
-    {
-        [Required]
-        public int Id { get; set; }
+        [Fact]
+        public void Product_MissingDescription_IsInvalid()
+        {
+            // Arrange
+            var product = new Product
+            {
+                Id = 1,
+                Name = "Test Product",
+                Price = 10.99m
+            };
 
-        [Required]
-        [StringLength(100, MinimumLength = 1)]
-        public string Name { get; set; }
+            // Act
+            var context = new ValidationContext(product);
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
 
-        [Required]
-        [Range(0.01, 1000)]
-        public decimal Price { get; set; }
+            // Assert
+            isValid.Should().BeFalse();
+            results.Should().HaveCount(1);
+            results[0].ErrorMessage.Should().Contain("Description");
+        }
 
-        [StringLength(500, MinimumLength = 1)]
-        public string Description { get; set; }
+        [Fact]
+        public void Product_DescriptionTooLong_IsInvalid()
+        {
+            // Arrange
+            var product = new Product
+            {
+                Id = 1,
+                Name = "Test Product",
+                Price = 10.99m,
+                Description = new string('a', 501)
+            };
+
+            // Act
+            var context = new ValidationContext(product);
+            var results = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, context, results);
+
+            // Assert
+            isValid.Should().BeFalse();
+            results.Should().HaveCount(1);
+            results[0].ErrorMessage.Should().Contain("Description");
+        }
     }
 }
