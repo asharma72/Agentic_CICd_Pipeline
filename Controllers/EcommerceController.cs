@@ -1,118 +1,46 @@
 using Microsoft.AspNetCore.Mvc;
-using Ecommerce.API.Models;
-using Ecommerce.API.Services;
-using Ecommerce.API.Exceptions;
+using EcommerceApi.Services;
+using EcommerceApi.DTOs;
 
-namespace Ecommerce.API.Controllers
+namespace EcommerceApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class EcommerceController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    private readonly IEcommerceService _service;
+    public EcommerceController(IEcommerceService service) => _service = service;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+        => Ok(await _service.GetAllAsync());
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
     {
-        private readonly IProductService _productService;
+        var item = await _service.GetByIdAsync(id);
+        return item == null ? NotFound() : Ok(item);
+    }
 
-        public ProductsController(IProductService productService)
-        {
-            _productService = productService;
-        }
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateEcommerceDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        var item = await _service.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+    }
 
-        // GET: api/products
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
-        {
-            try
-            {
-                var products = await _productService.GetAllProductsAsync();
-                return Ok(products);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateEcommerceDto dto)
+    {
+        var item = await _service.UpdateAsync(id, dto);
+        return item == null ? NotFound() : Ok(item);
+    }
 
-        // GET: api/products/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProductById(int id)
-        {
-            try
-            {
-                var product = await _productService.GetProductByIdAsync(id);
-                if (product == null)
-                {
-                    return NotFound();
-                }
-                return Ok(product);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        // POST: api/products
-        [HttpPost]
-        public async Task<ActionResult<Product>> CreateProduct(Product product)
-        {
-            try
-            {
-                var createdProduct = await _productService.CreateProductAsync(product);
-                return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.Id }, createdProduct);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        // PUT: api/products/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProduct(int id, Product product)
-        {
-            try
-            {
-                if (id != product.Id)
-                {
-                    return BadRequest();
-                }
-                await _productService.UpdateProductAsync(product);
-                return NoContent();
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        // DELETE: api/products/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteProduct(int id)
-        {
-            try
-            {
-                await _productService.DeleteProductAsync(id);
-                return NoContent();
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var deleted = await _service.DeleteAsync(id);
+        return deleted ? NoContent() : NotFound();
     }
 }
