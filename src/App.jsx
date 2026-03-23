@@ -23,21 +23,9 @@ export default function App() {
 
   useEffect(() => { load(); }, []);
 
-  const handleCreate = async (data) => {
-    await create(data);
-    load();
-  };
-
-  const handleUpdate = async (id, data) => {
-    await update(id, data);
-    setEditing(null);
-    load();
-  };
-
-  const handleDelete = async (id) => {
-    await remove(id);
-    load();
-  };
+  const handleCreate = async (data) => { await create(data); load(); };
+  const handleUpdate = async (id, data) => { await update(id, data); setEditing(null); load(); };
+  const handleDelete = async (id) => { await remove(id); load(); };
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
@@ -45,20 +33,14 @@ export default function App() {
         Ecommerce Management
       </h1>
       <ItemForm
-        initial={{editing}}
-        onSubmit={editing
-          ? (data) => handleUpdate(editing.id, data)
-          : handleCreate}
+        initial={editing}
+        onSubmit={editing ? (data) => handleUpdate(editing.id, data) : handleCreate}
         onCancel={() => setEditing(null)}
       />
       {loading && <p>Loading...</p>}
-      {error   && <p style={{color:'red'}}>{}</p>}
+      {error && <p style={{ color: 'red' }}>{}</p>}
       {!loading && (
-        <ItemList
-          items={{items}}
-          onEdit={setEditing}
-          onDelete={handleDelete}
-        />
+        <ItemList items={items} onEdit={setEditing} onDelete={handleDelete} />
       )}
     </div>
   );
