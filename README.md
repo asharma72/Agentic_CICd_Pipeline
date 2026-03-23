@@ -1,10 +1,10 @@
-# Ecommerce REST API
+# Employee REST API
 
 ## Endpoints
-- GET    /api/ecommerce        — get all
-- GET    /api/ecommerce/{id} — get by id
-- POST   /api/ecommerce        — create
-- PUT    /api/ecommerce/{id} — update
-- DELETE /api/ecommerce/{id} — delete
+- GET    /api/employee        — get all
+- GET    /api/employee/{id} — get by id
+- POST   /api/employee        — create
+- PUT    /api/employee/{id} — update
+- DELETE /api/employee/{id} — delete
 - GET    /health                  — health check
 - GET    /swagger                 — API docs
