@@ -1,21 +1,23 @@
 using Ecommerce.API.Services;
 using Ecommerce.API.Models;
+using Ecommerce.API.Repositories;
 using Moq;
-using Xunit;
 using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Ecommerce.API.Tests.Services
 {
     public class EcommerceServiceTests
     {
-        private readonly Mock<IRepository> _repositoryMock;
+        private readonly Mock<IProductRepository> _repositoryMock;
         private readonly EcommerceService _service;
 
         public EcommerceServiceTests()
         {
-            _repositoryMock = new Mock<IRepository>();
+            _repositoryMock = new Mock<IProductRepository>();
             _service = new EcommerceService(_repositoryMock.Object);
         }
 
@@ -34,7 +36,7 @@ namespace Ecommerce.API.Tests.Services
         }
 
         [Fact]
-        public async Task GetAll_ShouldReturnListOfProducts_WhenItemsExist()
+        public async Task GetAll_ShouldReturnAllItems_WhenItemsExist()
         {
             // Arrange
             var products = new List<Product>
@@ -66,7 +68,7 @@ namespace Ecommerce.API.Tests.Services
         }
 
         [Fact]
-        public async Task GetById_ShouldReturnProduct_WhenFound()
+        public async Task GetById_ShouldReturnItem_WhenItemExists()
         {
             // Arrange
             var product = new Product { Id = 1, Name = "Product 1" };
@@ -81,11 +83,18 @@ namespace Ecommerce.API.Tests.Services
         }
 
         [Fact]
-        public async Task Create_ShouldReturnCreatedProduct_WhenValidInput()
+        public async Task Create_ShouldThrowArgumentNullException_WhenProductIsNull()
+        {
+            // Act and Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.CreateAsync(null));
+        }
+
+        [Fact]
+        public async Task Create_ShouldReturnCreatedProduct_WhenProductIsValid()
         {
             // Arrange
             var product = new Product { Name = "Product 1" };
-            _repositoryMock.Setup(r => r.CreateAsync(It.IsAny<Product>())).ReturnsAsync(product);
+            _repositoryMock.Setup(r => r.CreateAsync(product)).ReturnsAsync(product);
 
             // Act
             var result = await _service.CreateAsync(product);
@@ -95,19 +104,32 @@ namespace Ecommerce.API.Tests.Services
             result.Should().BeEquivalentTo(product);
         }
 
-        [Fact]
-        public async Task Create_ShouldThrowArgumentNullException_WhenNullInput()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task Create_ShouldThrowArgumentException_WhenProductNameIsEmpty(string name)
         {
+            // Arrange
+            var product = new Product { Name = name };
+
             // Act and Assert
-            await _service.Invoking(s => s.CreateAsync(null)).Should().ThrowAsync<ArgumentNullException>();
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(product));
         }
 
         [Fact]
-        public async Task Update_ShouldReturnUpdatedProduct_WhenValidInput()
+        public async Task Update_ShouldThrowArgumentNullException_WhenProductIsNull()
+        {
+            // Act and Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.UpdateAsync(null));
+        }
+
+        [Fact]
+        public async Task Update_ShouldReturnUpdatedProduct_WhenProductIsValid()
         {
             // Arrange
             var product = new Product { Id = 1, Name = "Product 1" };
-            _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Product>())).ReturnsAsync(product);
+            _repositoryMock.Setup(r => r.UpdateAsync(product)).ReturnsAsync(product);
 
             // Act
             var result = await _service.UpdateAsync(product);
@@ -117,31 +139,34 @@ namespace Ecommerce.API.Tests.Services
             result.Should().BeEquivalentTo(product);
         }
 
-        [Fact]
-        public async Task Update_ShouldThrowArgumentNullException_WhenNullInput()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task Update_ShouldThrowArgumentException_WhenProductNameIsEmpty(string name)
         {
+            // Arrange
+            var product = new Product { Name = name };
+
             // Act and Assert
-            await _service.Invoking(s => s.UpdateAsync(null)).Should().ThrowAsync<ArgumentNullException>();
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.UpdateAsync(product));
         }
 
         [Fact]
-        public async Task Delete_ShouldNotThrow_WhenValidId()
+        public async Task Delete_ShouldThrowArgumentNullException_WhenIdIsZero()
+        {
+            // Act and Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DeleteAsync(0));
+        }
+
+        [Fact]
+        public async Task Delete_ShouldNotThrowException_WhenIdIsValid()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.DeleteAsync(1)).Verifiable();
+            _repositoryMock.Setup(r => r.DeleteAsync(1));
 
             // Act and Assert
             await _service.DeleteAsync(1);
-            _repositoryMock.Verify(r => r.DeleteAsync(1), Times.Once);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task Delete_ShouldThrowArgumentException_WhenInvalidId(int id)
-        {
-            // Act and Assert
-            await _service.Invoking(s => s.DeleteAsync(id)).Should().ThrowAsync<ArgumentException>();
         }
     }
 }

@@ -1,83 +1,100 @@
+using Ecommerce.API.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.API.Services
 {
     public class EcommerceService : IEcommerceService
     {
-        private readonly List<Ecommerce> _ecommereces;
-        private readonly ILogger<EcommerceService> _logger;
+        private readonly List<Ecommerce> _ecommerces;
+        private readonly ILogger _logger;
 
         public EcommerceService(ILogger<EcommerceService> logger)
         {
-            _ecommereces = new List<Ecommerce>();
             _logger = logger;
+            _ecommerces = new List<Ecommerce>();
         }
 
-        public IEnumerable<Ecommerce> GetAll()
+        public Ecommerce AddEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                return _ecommereces.ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all ecommerces");
-                throw;
-            }
-        }
+                if (ecommerce == null)
+                {
+                    throw new ArgumentNullException(nameof(ecommerce));
+                }
 
-        public Ecommerce GetById(int id)
-        {
-            try
-            {
-                return _ecommereces.FirstOrDefault(e => e.Id == id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting ecommerce by id");
-                throw;
-            }
-        }
-
-        public Ecommerce Create(Ecommerce ecommerce)
-        {
-            try
-            {
                 if (string.IsNullOrEmpty(ecommerce.Name))
                 {
-                    throw new ArgumentException("Ecommerce name cannot be null or empty");
+                    throw new ArgumentException("Name is required", nameof(ecommerce.Name));
                 }
 
-                if (_ecommereces.Any(e => e.Name == ecommerce.Name))
-                {
-                    throw new InvalidOperationException("Ecommerce with the same name already exists");
-                }
-
-                _ecommereces.Add(ecommerce);
+                _ecommerces.Add(ecommerce);
+                _logger.LogInformation($"Ecommerce added: {ecommerce.Name}");
                 return ecommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating ecommerce");
+                _logger.LogError(ex, "Error adding ecommerce");
                 throw;
             }
         }
 
-        public void Update(Ecommerce ecommerce)
+        public Ecommerce GetEcommerce(int id)
         {
             try
             {
-                var existingEcommerce = _ecommereces.FirstOrDefault(e => e.Id == ecommerce.Id);
+                var ecommerce = _ecommerces.FirstOrDefault(e => e.Id == id);
+                if (ecommerce == null)
+                {
+                    throw new ArgumentException("Ecommerce not found", nameof(id));
+                }
 
+                _logger.LogInformation($"Ecommerce retrieved: {ecommerce.Name}");
+                return ecommerce;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ecommerce");
+                throw;
+            }
+        }
+
+        public List<Ecommerce> GetEcommerces()
+        {
+            try
+            {
+                var ecommerces = _ecommerces.ToList();
+                _logger.LogInformation($"Ecommerces retrieved: {ecommmerces.Count}");
+                return ecommerces;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ecommerces");
+                throw;
+            }
+        }
+
+        public Ecommerce UpdateEcommerce(Ecommerce ecommerce)
+        {
+            try
+            {
+                if (ecommerce == null)
+                {
+                    throw new ArgumentNullException(nameof(ecommerce));
+                }
+
+                var existingEcommerce = _ecommerces.FirstOrDefault(e => e.Id == ecommerce.Id);
                 if (existingEcommerce == null)
                 {
-                    throw new ArgumentException("Ecommerce not found");
+                    throw new ArgumentException("Ecommerce not found", nameof(ecommerce.Id));
                 }
 
                 existingEcommerce.Name = ecommerce.Name;
+                _logger.LogInformation($"Ecommerce updated: {existingEcommerce.Name}");
+                return existingEcommerce;
             }
             catch (Exception ex)
             {
@@ -86,18 +103,18 @@ namespace Ecommerce.API.Services
             }
         }
 
-        public void Delete(int id)
+        public void DeleteEcommerce(int id)
         {
             try
             {
-                var ecommerce = _ecommereces.FirstOrDefault(e => e.Id == id);
-
+                var ecommerce = _ecommerces.FirstOrDefault(e => e.Id == id);
                 if (ecommerce == null)
                 {
-                    throw new ArgumentException("Ecommerce not found");
+                    throw new ArgumentException("Ecommerce not found", nameof(id));
                 }
 
-                _ecommereces.Remove(ecommerce);
+                _ecommerces.Remove(ecommerce);
+                _logger.LogInformation($"Ecommerce deleted: {id}");
             }
             catch (Exception ex)
             {
@@ -109,16 +126,10 @@ namespace Ecommerce.API.Services
 
     public interface IEcommerceService
     {
-        IEnumerable<Ecommerce> GetAll();
-        Ecommerce GetById(int id);
-        Ecommerce Create(Ecommerce ecommerce);
-        void Update(Ecommerce ecommerce);
-        void Delete(int id);
-    }
-
-    public class Ecommerce
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        Ecommerce AddEcommerce(Ecommerce ecommerce);
+        Ecommerce GetEcommerce(int id);
+        List<Ecommerce> GetEcommerces();
+        Ecommerce UpdateEcommerce(Ecommerce ecommerce);
+        void DeleteEcommerce(int id);
     }
 }

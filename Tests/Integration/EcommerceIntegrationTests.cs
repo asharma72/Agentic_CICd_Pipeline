@@ -6,61 +6,59 @@ using Xunit;
 
 namespace Ecommerce.API.Tests.Integration
 {
-    public class EcommerceApiTests : IClassFixture<WebApplicationFactory<Program>>
+    public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
         private readonly HttpClient _client;
 
-        public EcommerceApiTests(WebApplicationFactory<Program> factory)
+        public IntegrationTests(WebApplicationFactory<Program> factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
+            _client = factory.CreateClient();
         }
 
         [Fact]
-        public async Task HealthEndpoint_ReturnsOkResponse()
+        public async Task Get_Health_ReturnsOk()
         {
             var response = await _client.GetAsync("/health");
-            Assert.True(response.IsSuccessStatusCode);
+            response.EnsureSuccessStatusCode();
         }
 
         [Fact]
-        public async Task GetAllProducts_ReturnsOkResponse()
-        {
-            var response = await _client.GetAsync("/products");
-            Assert.True(response.IsSuccessStatusCode);
-        }
-
-        [Fact]
-        public async Task GetProductById_ReturnsOkResponse()
-        {
-            var response = await _client.GetAsync("/products/1");
-            Assert.True(response.IsSuccessStatusCode);
-        }
-
-        [Fact]
-        public async Task CreateProduct_ReturnsCreatedResponse()
+        public async Task Post_Product_CreatesProduct()
         {
             var product = new { Name = "Test Product", Price = 10.99m };
             var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(product), System.Text.Encoding.UTF8, "application/json");
             var response = await _client.PostAsync("/products", content);
-            Assert.True(response.IsSuccessStatusCode);
+            response.EnsureSuccessStatusCode();
         }
 
         [Fact]
-        public async Task UpdateProduct_ReturnsOkResponse()
+        public async Task Get_Products_ReturnsProducts()
+        {
+            var response = await _client.GetAsync("/products");
+            response.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async Task Get_Product_ReturnsProduct()
+        {
+            var response = await _client.GetAsync("/products/1");
+            response.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async Task Put_Product_UpdatesProduct()
         {
             var product = new { Name = "Updated Product", Price = 12.99m };
             var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(product), System.Text.Encoding.UTF8, "application/json");
             var response = await _client.PutAsync("/products/1", content);
-            Assert.True(response.IsSuccessStatusCode);
+            response.EnsureSuccessStatusCode();
         }
 
         [Fact]
-        public async Task DeleteProduct_ReturnsNoContentResponse()
+        public async Task Delete_Product_RemovesProduct()
         {
             var response = await _client.DeleteAsync("/products/1");
-            Assert.True(response.IsSuccessStatusCode);
+            response.EnsureSuccessStatusCode();
         }
     }
 }
