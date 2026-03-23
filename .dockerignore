@@ -1,0 +1,5 @@
+Tests/
+*.sln
+obj/
+bin/
+README.md
