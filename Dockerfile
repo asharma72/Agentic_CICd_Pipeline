@@ -1,13 +1,12 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY Ecommerce.API.csproj ./
-RUN dotnet restore Ecommerce.API.csproj
-COPY . .
-RUN dotnet publish Ecommerce.API.csproj -c Release -o /app/publish
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM node:20-slim AS build
 WORKDIR /app
-COPY --from=build /app/publish .
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-ENTRYPOINT ["dotnet", "Ecommerce.API.dll"]
+COPY package.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 3000
+CMD ["nginx", "-g", "daemon off;"]
