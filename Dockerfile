@@ -3,7 +3,7 @@ WORKDIR /src
 COPY Ecommerce.API.csproj ./
 RUN dotnet restore Ecommerce.API.csproj
 COPY . .
-RUN dotnet publish Ecommerce.API.csproj -c Release -o /app/publish /p:ExcludeFilesFromDeployment="Tests/**"
+RUN dotnet publish Ecommerce.API.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app

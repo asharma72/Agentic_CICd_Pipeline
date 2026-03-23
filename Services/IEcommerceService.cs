@@ -1,23 +1,13 @@
-namespace Ecommerce.API.Services
+using EcommerceApi.Models;
+using EcommerceApi.DTOs;
+
+namespace EcommerceApi.Services;
+
+public interface IEcommerceService
 {
-    public interface IEcommerceService<T> where T : class
-    {
-        Task<T> GetByIdAsync(int id);
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T> CreateAsync(T entity);
-        Task UpdateAsync(T entity);
-        Task DeleteAsync(int id);
-    }
-
-    public interface IProductService : IEcommerceService<Product>
-    {
-    }
-
-    public interface IOrderService : IEcommerceService<Order>
-    {
-    }
-
-    public interface ICustomerService : IEcommerceService<Customer>
-    {
-    }
+    Task<IEnumerable<EcommerceItem>> GetAllAsync();
+    Task<EcommerceItem?> GetByIdAsync(int id);
+    Task<EcommerceItem> CreateAsync(CreateEcommerceDto dto);
+    Task<EcommerceItem?> UpdateAsync(int id, UpdateEcommerceDto dto);
+    Task<bool> DeleteAsync(int id);
 }
