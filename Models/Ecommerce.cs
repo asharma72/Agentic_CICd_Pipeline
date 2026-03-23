@@ -1,92 +1,107 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.API.Models
 {
     public class Product
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Product name is required")]
-        [StringLength(100, ErrorMessage = "Product name cannot be longer than 100 characters")]
+        [Required]
+        [StringLength(100)]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Product description is required")]
-        [StringLength(500, ErrorMessage = "Product description cannot be longer than 500 characters")]
+        [Required]
+        [StringLength(500)]
         public string Description { get; set; }
 
-        [Required(ErrorMessage = "Product price is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Product price must be a positive number")]
+        [Required]
+        [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Product category is required")]
-        [StringLength(50, ErrorMessage = "Product category cannot be longer than 50 characters")]
+        [Required]
+        public int Quantity { get; set; }
+
+        [Required]
+        [StringLength(100)]
         public string Category { get; set; }
 
-        [Required(ErrorMessage = "Product stock is required")]
-        [Range(0, int.MaxValue, ErrorMessage = "Product stock must be a non-negative integer")]
-        public int Stock { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string SubCategory { get; set; }
+
+        [Required]
+        [StringLength(200)]
+        public string ImageUrl { get; set; }
     }
 
     public class Order
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Order date is required")]
+        [Required]
+        public int UserId { get; set; }
+
+        [Required]
         public DateTime OrderDate { get; set; }
 
-        [Required(ErrorMessage = "Order total is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Order total must be a positive number")]
+        [Required]
+        [Range(0, double.MaxValue)]
         public decimal Total { get; set; }
 
-        [Required(ErrorMessage = "Order status is required")]
-        [StringLength(50, ErrorMessage = "Order status cannot be longer than 50 characters")]
+        [Required]
+        [StringLength(200)]
         public string Status { get; set; }
-
-        public List<OrderItem> OrderItems { get; set; }
     }
 
     public class OrderItem
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Order item product id is required")]
+        [Required]
+        public int OrderId { get; set; }
+
+        [Required]
         public int ProductId { get; set; }
 
-        [Required(ErrorMessage = "Order item quantity is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Order item quantity must be a positive integer")]
+        [Required]
         public int Quantity { get; set; }
 
-        [Required(ErrorMessage = "Order item price is required")]
-        [Range(0, double.MaxValue, ErrorMessage = "Order item price must be a positive number")]
+        [Required]
+        [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
-
-        public Order Order { get; set; }
     }
 
-    public class Customer
+    public class User
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Customer name is required")]
-        [StringLength(100, ErrorMessage = "Customer name cannot be longer than 100 characters")]
-        public string Name { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string FirstName { get; set; }
 
-        [Required(ErrorMessage = "Customer email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
+        [Required]
+        [StringLength(100)]
+        public string LastName { get; set; }
+
+        [Required]
+        [StringLength(100)]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Customer phone number is required")]
-        [StringLength(20, ErrorMessage = "Customer phone number cannot be longer than 20 characters")]
-        public string PhoneNumber { get; set; }
+        [Required]
+        [StringLength(20)]
+        public string Phone { get; set; }
 
-        [Required(ErrorMessage = "Customer address is required")]
-        [StringLength(200, ErrorMessage = "Customer address cannot be longer than 200 characters")]
+        [Required]
+        [StringLength(200)]
         public string Address { get; set; }
-
-        public List<Order> Orders { get; set; }
     }
 }
