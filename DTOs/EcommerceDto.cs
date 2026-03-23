@@ -4,14 +4,18 @@ namespace Ecommerce.API.DTOs
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public string Url { get; set; }
+        public decimal Price { get; set; }
+        public string Category { get; set; }
+        public string ImageUrl { get; set; }
     }
 
     public class UpdateEcommerceDto
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public string Url { get; set; }
+        public decimal? Price { get; set; }
+        public string Category { get; set; }
+        public string ImageUrl { get; set; }
     }
 
     public class EcommerceResponseDto
@@ -19,6 +23,8 @@ namespace Ecommerce.API.DTOs
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public string Url { get; set; }
+        public decimal Price { get; set; }
+        public string Category { get; set; }
+        public string ImageUrl { get; set; }
     }
 }
