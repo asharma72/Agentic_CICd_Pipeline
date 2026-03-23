@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace EcommerceApi.Middleware;
+namespace EmployeeApi.Middleware;
 
 public class ErrorHandlingMiddleware
 {
