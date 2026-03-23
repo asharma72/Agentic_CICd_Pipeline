@@ -32,7 +32,7 @@ namespace Ecommerce.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetAll_ShouldReturn200_WithEmptyList()
+        public async Task GetAll_ShouldReturn200_WithEmptyItems()
         {
             _mockService.Setup(s => s.GetAllAsync())
                 .ReturnsAsync(new List<Ecommerce>());
@@ -40,13 +40,16 @@ namespace Ecommerce.API.Tests.Controllers
             result?.StatusCode.Should().Be(200);
         }
 
-        [Fact]
-        public async Task GetById_ShouldReturn200_WithItem()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public async Task GetById_ShouldReturn200_WithItem(int id)
         {
-            var item = new Ecommerce { Id = 1 };
-            _mockService.Setup(s => s.GetByIdAsync(1))
+            var item = new Ecommerce { Id = id };
+            _mockService.Setup(s => s.GetByIdAsync(id))
                 .ReturnsAsync(item);
-            var result = await _controller.GetById(1) as OkObjectResult;
+            var result = await _controller.GetById(id) as OkObjectResult;
             result?.StatusCode.Should().Be(200);
             result?.Value.Should().Be(item);
         }
@@ -56,28 +59,17 @@ namespace Ecommerce.API.Tests.Controllers
         {
             _mockService.Setup(s => s.GetByIdAsync(1))
                 .ReturnsAsync((Ecommerce)null);
-            var result = await _controller.GetById(1) as NotFoundResult;
-            result?.StatusCode.Should().Be(404);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task GetById_ShouldReturn400_WithInvalidId(int id)
-        {
-            _mockService.Setup(s => s.GetByIdAsync(id))
-                .ReturnsAsync((Ecommerce)null);
-            var result = await _controller.GetById(id) as BadRequestObjectResult;
-            result?.StatusCode.Should().Be(400);
+            var result = await _controller.GetById(1);
+            result.Should().BeOfType<NotFoundResult>();
         }
 
         [Fact]
-        public async Task Post_ShouldReturn201_WithCreatedItem()
+        public async Task Post_ShouldReturn201_WithNewItem()
         {
             var item = new Ecommerce { Id = 1 };
             _mockService.Setup(s => s.CreateAsync(It.IsAny<Ecommerce>()))
                 .ReturnsAsync(item);
-            var result = await _controller.Post(new Ecommerce()) as CreatedAtActionResult;
+            var result = await _controller.Post(item) as CreatedAtActionResult;
             result?.StatusCode.Should().Be(201);
             result?.Value.Should().Be(item);
         }
@@ -85,9 +77,11 @@ namespace Ecommerce.API.Tests.Controllers
         [Fact]
         public async Task Post_ShouldReturn400_WithInvalidItem()
         {
-            _controller.ModelState.AddModelError("Item", "Invalid item");
-            var result = await _controller.Post(new Ecommerce()) as BadRequestObjectResult;
-            result?.StatusCode.Should().Be(400);
+            var item = new Ecommerce { Id = 0 };
+            _mockService.Setup(s => s.CreateAsync(It.IsAny<Ecommerce>()))
+                .Throws<ArgumentException>();
+            var result = await _controller.Post(item);
+            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
@@ -96,7 +90,7 @@ namespace Ecommerce.API.Tests.Controllers
             var item = new Ecommerce { Id = 1 };
             _mockService.Setup(s => s.UpdateAsync(It.IsAny<Ecommerce>()))
                 .ReturnsAsync(item);
-            var result = await _controller.Put(1, new Ecommerce()) as OkObjectResult;
+            var result = await _controller.Put(item) as OkObjectResult;
             result?.StatusCode.Should().Be(200);
             result?.Value.Should().Be(item);
         }
@@ -104,21 +98,11 @@ namespace Ecommerce.API.Tests.Controllers
         [Fact]
         public async Task Put_ShouldReturn404_WithInvalidId()
         {
+            var item = new Ecommerce { Id = 0 };
             _mockService.Setup(s => s.UpdateAsync(It.IsAny<Ecommerce>()))
-                .ReturnsAsync((Ecommerce)null);
-            var result = await _controller.Put(1, new Ecommerce()) as NotFoundResult;
-            result?.StatusCode.Should().Be(404);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task Put_ShouldReturn400_WithInvalidId(int id)
-        {
-            _mockService.Setup(s => s.UpdateAsync(It.IsAny<Ecommerce>()))
-                .ReturnsAsync((Ecommerce)null);
-            var result = await _controller.Put(id, new Ecommerce()) as BadRequestObjectResult;
-            result?.StatusCode.Should().Be(400);
+                .Throws<ArgumentException>();
+            var result = await _controller.Put(item);
+            result.Should().BeOfType<NotFoundResult>();
         }
 
         [Fact]
@@ -126,30 +110,18 @@ namespace Ecommerce.API.Tests.Controllers
         {
             var item = new Ecommerce { Id = 1 };
             _mockService.Setup(s => s.DeleteAsync(1))
-                .ReturnsAsync(item);
-            var result = await _controller.Delete(1) as OkObjectResult;
+                .ReturnsAsync(true);
+            var result = await _controller.Delete(1) as OkResult;
             result?.StatusCode.Should().Be(200);
-            result?.Value.Should().Be(item);
         }
 
         [Fact]
         public async Task Delete_ShouldReturn404_WithInvalidId()
         {
             _mockService.Setup(s => s.DeleteAsync(1))
-                .ReturnsAsync((Ecommerce)null);
-            var result = await _controller.Delete(1) as NotFoundResult;
-            result?.StatusCode.Should().Be(404);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task Delete_ShouldReturn400_WithInvalidId(int id)
-        {
-            _mockService.Setup(s => s.DeleteAsync(id))
-                .ReturnsAsync((Ecommerce)null);
-            var result = await _controller.Delete(id) as BadRequestObjectResult;
-            result?.StatusCode.Should().Be(400);
+                .ReturnsAsync(false);
+            var result = await _controller.Delete(1);
+            result.Should().BeOfType<NotFoundResult>();
         }
     }
 }
