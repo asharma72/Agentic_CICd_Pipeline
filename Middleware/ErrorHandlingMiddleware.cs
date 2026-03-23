@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace Api.Middleware;
+namespace EcommerceApi.Middleware;
 
 public class ErrorHandlingMiddleware
 {
@@ -10,10 +10,7 @@ public class ErrorHandlingMiddleware
 
     public ErrorHandlingMiddleware(RequestDelegate next,
         ILogger<ErrorHandlingMiddleware> logger)
-    {
-        _next   = next;
-        _logger = logger;
-    }
+    { _next = next; _logger = logger; }
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -23,8 +20,8 @@ public class ErrorHandlingMiddleware
             _logger.LogError(ex, "Unhandled exception");
             context.Response.StatusCode  = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
-            var error = new { message = "An error occurred", detail = ex.Message };
-            await context.Response.WriteAsync(JsonSerializer.Serialize(error));
+            await context.Response.WriteAsync(
+                JsonSerializer.Serialize(new { message = ex.Message }));
         }
     }
 }
