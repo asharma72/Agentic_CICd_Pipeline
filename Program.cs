@@ -1,7 +1,11 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
+using EcommerceApi.Controllers;
+using EcommerceApi.Models;
+using EcommerceApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,24 +14,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce REST API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EcommerceApi", Version = "v1" });
 });
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = "https://localhost:5001",
-            ValidAudience = "https://localhost:5001",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key_here"))
-        };
-    });
-
+builder.Services.AddDbContext<EcommerceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("EcommerceDatabase")));
+builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -45,60 +37,28 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ecommerce REST API v1"));
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EcommerceApi v1"));
 }
 
 app.UseCors();
-app.UseAuthentication();
+app.UseHttpsRedirection();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<ErrorHandlingMiddleware>();
-
-app.Run();
-
-public class ErrorHandlingMiddleware
+app.UseExceptionHandler(appError =>
 {
-    private readonly RequestDelegate _next;
-
-    public ErrorHandlingMiddleware(RequestDelegate next)
+    appError.Run(async context =>
     {
-        _next = next;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            await _next(context);
-        }
-        catch (Exception ex)
-        {
-            await HandleExceptionAsync(context, ex);
-        }
-    }
-
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
+        context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-
         await context.Response.WriteAsync(new ErrorDetails
         {
             StatusCode = context.Response.StatusCode,
-            Message = exception.Message
+            Message = "Internal Server Error."
         }.ToString());
-    }
-}
+    });
+});
 
-public class ErrorDetails
-{
-    public int StatusCode { get; set; }
-    public string Message { get; set; }
-
-    public override string ToString()
-    {
-        return $"{{\"statusCode\":{StatusCode},\"message\":\"{Message}\"}}";
-    }
-}
+app.Run();

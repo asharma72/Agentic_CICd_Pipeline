@@ -1,6 +1,7 @@
 using Ecommerce.API.Models;
 using Ecommerce.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Ecommerce.API.Controllers
 {
@@ -15,6 +16,7 @@ namespace Ecommerce.API.Controllers
             _productService = productService;
         }
 
+        // GET: api/products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
         {
@@ -22,6 +24,7 @@ namespace Ecommerce.API.Controllers
             return Ok(products);
         }
 
+        // GET: api/products/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
         {
@@ -33,6 +36,7 @@ namespace Ecommerce.API.Controllers
             return Ok(product);
         }
 
+        // POST: api/products
         [HttpPost]
         public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
@@ -40,6 +44,7 @@ namespace Ecommerce.API.Controllers
             return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.Id }, createdProduct);
         }
 
+        // PUT: api/products/5
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateProduct(int id, Product product)
         {
@@ -51,6 +56,7 @@ namespace Ecommerce.API.Controllers
             return NoContent();
         }
 
+        // DELETE: api/products/5
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {
