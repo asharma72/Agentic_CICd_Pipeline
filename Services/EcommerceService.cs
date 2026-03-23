@@ -7,39 +7,35 @@ namespace Ecommerce.API.Services
 {
     public class EcommerceService : IEcommerceService
     {
-        private readonly List<Ecommerce> _ecommereces;
+        private readonly List<Ecommerce> _ecommmerces;
         private readonly ILogger<EcommerceService> _logger;
 
         public EcommerceService(ILogger<EcommerceService> logger)
         {
             _logger = logger;
-            _ecommereces = new List<Ecommerce>();
+            _ecommmerces = new List<Ecommerce>();
         }
 
-        public async Task<Ecommerce> GetByIdAsync(int id)
+        public Ecommerce AddEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                var ecommerce = _ecommereces.FirstOrDefault(e => e.Id == id);
-                if (ecommerce == null)
-                {
-                    _logger.LogInformation($"Ecommerce with id {id} not found");
-                    throw new InvalidOperationException($"Ecommerce with id {id} not found");
-                }
+                _ecommmerces.Add(ecommerce);
+                _logger.LogInformation($"Ecommerce added successfully: {ecommerce.Id}");
                 return ecommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting ecommerce by id {id}");
+                _logger.LogError(ex, "Error adding ecommerce");
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Ecommerce>> GetAllAsync()
+        public IEnumerable<Ecommerce> GetAllEcommerces()
         {
             try
             {
-                return _ecommereces.ToList();
+                return _ecommmerces.ToList();
             }
             catch (Exception ex)
             {
@@ -48,70 +44,64 @@ namespace Ecommerce.API.Services
             }
         }
 
-        public async Task<Ecommerce> CreateAsync(Ecommerce ecommerce)
+        public Ecommerce GetEcommerceById(int id)
         {
             try
             {
+                var ecommerce = _ecommmerces.FirstOrDefault(e => e.Id == id);
                 if (ecommerce == null)
                 {
-                    _logger.LogInformation("Ecommerce is null");
-                    throw new ArgumentNullException(nameof(ecommerce));
+                    _logger.LogWarning($"Ecommerce not found: {id}");
+                    throw new InvalidOperationException($"Ecommerce not found: {id}");
                 }
-                if (_ecommereces.Any(e => e.Id == ecommerce.Id))
-                {
-                    _logger.LogInformation($"Ecommerce with id {ecommerce.Id} already exists");
-                    throw new InvalidOperationException($"Ecommerce with id {ecommerce.Id} already exists");
-                }
-                _ecommereces.Add(ecommerce);
+                _logger.LogInformation($"Ecommerce found: {id}");
                 return ecommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error creating ecommerce {ecommerce.Id}");
+                _logger.LogError(ex, "Error getting ecommerce by id");
                 throw;
             }
         }
 
-        public async Task UpdateAsync(Ecommerce ecommerce)
+        public Ecommerce UpdateEcommerce(Ecommerce ecommerce)
         {
             try
             {
-                if (ecommerce == null)
-                {
-                    _logger.LogInformation("Ecommerce is null");
-                    throw new ArgumentNullException(nameof(ecommerce));
-                }
-                var existingEcommerce = _ecommereces.FirstOrDefault(e => e.Id == ecommerce.Id);
+                var existingEcommerce = _ecommmerces.FirstOrDefault(e => e.Id == ecommerce.Id);
                 if (existingEcommerce == null)
                 {
-                    _logger.LogInformation($"Ecommerce with id {ecommerce.Id} not found");
-                    throw new InvalidOperationException($"Ecommerce with id {ecommerce.Id} not found");
+                    _logger.LogWarning($"Ecommerce not found: {ecommerce.Id}");
+                    throw new InvalidOperationException($"Ecommerce not found: {ecommerce.Id}");
                 }
-                existingEcommerce.Name = ecommerce.Name;
-                existingEcommerce.Description = ecommerce.Description;
+                _ecommmerces.Remove(existingEcommerce);
+                _ecommmerces.Add(ecommerce);
+                _logger.LogInformation($"Ecommerce updated successfully: {ecommerce.Id}");
+                return ecommerce;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating ecommerce {ecommerce.Id}");
+                _logger.LogError(ex, "Error updating ecommerce");
                 throw;
             }
         }
 
-        public async Task DeleteAsync(int id)
+        public void DeleteEcommerce(int id)
         {
             try
             {
-                var ecommerce = _ecommereces.FirstOrDefault(e => e.Id == id);
+                var ecommerce = _ecommmerces.FirstOrDefault(e => e.Id == id);
                 if (ecommerce == null)
                 {
-                    _logger.LogInformation($"Ecommerce with id {id} not found");
-                    throw new InvalidOperationException($"Ecommerce with id {id} not found");
+                    _logger.LogWarning($"Ecommerce not found: {id}");
+                    throw new InvalidOperationException($"Ecommerce not found: {id}");
                 }
-                _ecommereces.Remove(ecommerce);
+                _ecommmerces.Remove(ecommerce);
+                _logger.LogInformation($"Ecommerce deleted successfully: {id}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error deleting ecommerce {id}");
+                _logger.LogError(ex, "Error deleting ecommerce");
                 throw;
             }
         }

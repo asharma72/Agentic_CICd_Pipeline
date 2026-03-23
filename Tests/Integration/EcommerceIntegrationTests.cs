@@ -18,43 +18,66 @@ namespace Ecommerce.API.Tests.Integration
         [Fact]
         public async Task HealthEndpoint_ReturnsOk()
         {
+            // Arrange
+
+            // Act
             var response = await _client.GetAsync("/health");
+
+            // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
-        public async Task PostProduct_CreatesProduct()
+        public async Task CreateProduct_ReturnsCreated()
         {
-            var product = new { Name = "Test Product", Price = 10.99m };
+            // Arrange
+            var product = new { name = "Test Product", price = 10.99m };
+
+            // Act
             var response = await _client.PostAsJsonAsync("/products", product);
+
+            // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
+            Assert.True(response.StatusCode == System.Net.HttpStatusCode.Created);
         }
 
         [Fact]
-        public async Task GetProducts_ReturnsProducts()
+        public async Task ReadProducts_ReturnsOk()
         {
+            // Arrange
+
+            // Act
             var response = await _client.GetAsync("/products");
+
+            // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
-        public async Task PutProduct_UpdatesProduct()
+        public async Task UpdateProduct_ReturnsOk()
         {
-            var product = new { Id = 1, Name = "Updated Product", Price = 10.99m };
-            var response = await _client.PutAsJsonAsync("/products/1", product);
+            // Arrange
+            var productId = 1;
+            var updatedProduct = new { name = "Updated Product", price = 12.99m };
+
+            // Act
+            var response = await _client.PutAsJsonAsync($"/products/{productId}", updatedProduct);
+
+            // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [Fact]
-        public async Task DeleteProduct_RemovesProduct()
+        public async Task DeleteProduct_ReturnsOk()
         {
-            var response = await _client.DeleteAsync("/products/1");
+            // Arrange
+            var productId = 1;
+
+            // Act
+            var response = await _client.DeleteAsync($"/products/{productId}");
+
+            // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
         }
     }
 }

@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using Ecommerce.API.Models;
 using Ecommerce.API.Services;
-using Ecommerce.API.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Ecommerce.API.Controllers
 {
@@ -35,21 +35,20 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Product>> CreateProduct([FromBody] ProductCreateDto productCreateDto)
+        public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            var product = await _productService.CreateProductAsync(productCreateDto);
-            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+            var newProduct = await _productService.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, newProduct);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProduct(int id, [FromBody] ProductUpdateDto productUpdateDto)
+        public async Task<ActionResult> UpdateProduct(int id, Product product)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
+            if (id != product.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
-            await _productService.UpdateProductAsync(id, productUpdateDto);
+            await _productService.UpdateProductAsync(product);
             return NoContent();
         }
 

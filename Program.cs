@@ -3,55 +3,99 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
 builder.Services.AddControllers();
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce API", Version = "v1" });
 });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key_here"))
+        };
+    });
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAnyOrigin",
-        policy => policy.AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader());
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
 });
 
 var app = builder.Build();
 
-app.UseCors("AllowAnyOrigin");
-
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ecommerce API v1"));
 }
 
-app.UseHttpsRedirection();
+app.UseCors();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseExceptionHandler(appError =>
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
+app.Run();
+
+public class ErrorHandlerMiddleware
 {
-    appError.Run(async context =>
+    private readonly RequestDelegate _next;
+
+    public ErrorHandlerMiddleware(RequestDelegate next)
     {
-        context.Response.StatusCode = 500;
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            await HandleExceptionAsync(context, ex);
+        }
+    }
+
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    {
         context.Response.ContentType = "application/json";
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
         await context.Response.WriteAsync(new ErrorDetails
         {
             StatusCode = context.Response.StatusCode,
-            Message = "Internal Server Error."
+            Message = "Internal Server Error"
         }.ToString());
-    });
-});
-
-app.Run();
+    }
+}
 
 public class ErrorDetails
 {
@@ -60,6 +104,6 @@ public class ErrorDetails
 
     public override string ToString()
     {
-        return $"{{ \"statusCode\": {StatusCode}, \"message\": \"{Message}\" }}";
+        return $"{{\"statusCode\":{StatusCode},\"message\":\"{Message}\"}}";
     }
 }

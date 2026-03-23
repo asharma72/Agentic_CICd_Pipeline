@@ -9,28 +9,93 @@ namespace Ecommerce.API.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Product name is required")]
-        [StringLength(100, ErrorMessage = "Product name should not exceed 100 characters")]
+        [Required]
+        [StringLength(100)]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Product description is required")]
-        [StringLength(500, ErrorMessage = "Product description should not exceed 500 characters")]
+        [Required]
+        [StringLength(500)]
         public string Description { get; set; }
 
-        [Required(ErrorMessage = "Product price is required")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Product price should be a positive number")]
+        [Required]
+        [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Product quantity is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Product quantity should be a positive integer")]
+        [Required]
         public int Quantity { get; set; }
 
-        [Required(ErrorMessage = "Product category is required")]
-        [StringLength(50, ErrorMessage = "Product category should not exceed 50 characters")]
+        [Required]
+        [StringLength(100)]
         public string Category { get; set; }
 
-        [Required(ErrorMessage = "Product image URL is required")]
-        [StringLength(200, ErrorMessage = "Product image URL should not exceed 200 characters")]
+        [Required]
+        [StringLength(100)]
+        public string SubCategory { get; set; }
+
         public string ImageUrl { get; set; }
+    }
+
+    public class Order
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        public int CustomerId { get; set; }
+
+        [Required]
+        public DateTime OrderDate { get; set; }
+
+        [Required]
+        [Range(0, double.MaxValue)]
+        public decimal Total { get; set; }
+
+        public bool IsShipped { get; set; }
+
+        public bool IsDelivered { get; set; }
+    }
+
+    public class OrderItem
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        public int OrderId { get; set; }
+
+        [Required]
+        public int ProductId { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
+
+        [Required]
+        [Range(0, double.MaxValue)]
+        public decimal Price { get; set; }
+    }
+
+    public class Customer
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Email { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Address { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        public string Phone { get; set; }
     }
 }
