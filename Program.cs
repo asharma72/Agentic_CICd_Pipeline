@@ -1,78 +1,85 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Cors;
+using EcommerceApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EcommerceApi", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Please insert JWT with Bearer into field"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
 });
 
-// CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAnyOrigin",
-        policy =>
+    options.AddPolicy("AllowAll",
+        builder =>
         {
-            policy.AllowAnyOrigin();
-            policy.AllowAnyMethod();
-            policy.AllowAnyHeader();
+            builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
         });
 });
 
-// Configure the HTTP request pipeline.
-var app = builder.Build();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Audience = "EcommerceApi";
+        options.Authority = "https://localhost:5001";
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "https://localhost:5001",
+            ValidAudience = "EcommerceApi",
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("your_secret_key"))
+        };
+    });
 
-// Enable CORS
-app.UseCors("AllowAnyOrigin");
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ecommerce API v1"));
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EcommerceApi v1"));
 }
 
-// Error handling middleware
-app.UseExceptionHandler(appError =>
-{
-    appError.Run(async context =>
-    {
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "application/json";
+app.UseCors("AllowAll");
 
-        await context.Response.WriteAsync(new ErrorDetails
-        {
-            StatusCode = context.Response.StatusCode,
-            Message = "Internal Server Error."
-        }.ToString());
-    });
-});
-
-app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Controller mapping
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
 app.MapControllers();
 
 app.Run();
-
-public class ErrorDetails
-{
-    public int StatusCode { get; set; }
-    public string Message { get; set; }
-
-    public override string ToString()
-    {
-        return $"{{\"statusCode\":{StatusCode},\"message\":\"{Message}\"}}";
-    }
-}

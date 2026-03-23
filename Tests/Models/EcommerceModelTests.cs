@@ -1,7 +1,9 @@
 using Ecommerce.API.Models;
 using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Xunit;
 
 namespace Ecommerce.API.Tests.Models
@@ -9,15 +11,15 @@ namespace Ecommerce.API.Tests.Models
     public class ProductTests
     {
         [Fact]
-        public void Product_ValidModel_ModelIsValid()
+        public void Product_WithValidData_ShouldBeValid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
-                Name = "Product",
-                Description = "Description",
-                Price = 10.99m,
+                Name = "Test Product",
+                Description = "This is a test product",
+                Price = 19.99m,
                 Quantity = 10
             };
 
@@ -31,15 +33,14 @@ namespace Ecommerce.API.Tests.Models
         }
 
         [Fact]
-        public void Product_InvalidId_ModelIsInvalid()
+        public void Product_WithMissingRequiredField_Name_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
-                Id = 0,
-                Name = "Product",
-                Description = "Description",
-                Price = 10.99m,
+                Id = 1,
+                Description = "This is a test product",
+                Price = 19.99m,
                 Quantity = 10
             };
 
@@ -50,18 +51,18 @@ namespace Ecommerce.API.Tests.Models
 
             // Assert
             isValid.Should().BeFalse();
+            results.Should().Contain(r => r.ErrorMessage == "The Name field is required.");
         }
 
         [Fact]
-        public void Product_InvalidName_ModelIsInvalid()
+        public void Product_WithMissingRequiredField_Description_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
-                Name = string.Empty,
-                Description = "Description",
-                Price = 10.99m,
+                Name = "Test Product",
+                Price = 19.99m,
                 Quantity = 10
             };
 
@@ -72,18 +73,19 @@ namespace Ecommerce.API.Tests.Models
 
             // Assert
             isValid.Should().BeFalse();
+            results.Should().Contain(r => r.ErrorMessage == "The Description field is required.");
         }
 
         [Fact]
-        public void Product_InvalidDescription_ModelIsInvalid()
+        public void Product_WithNameExceedingMaxLength_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
-                Name = "Product",
-                Description = new string('a', 501),
-                Price = 10.99m,
+                Name = new string('a', 51),
+                Description = "This is a test product",
+                Price = 19.99m,
                 Quantity = 10
             };
 
@@ -94,18 +96,19 @@ namespace Ecommerce.API.Tests.Models
 
             // Assert
             isValid.Should().BeFalse();
+            results.Should().Contain(r => r.ErrorMessage == "The field Name must be a string with a maximum length of 50.");
         }
 
         [Fact]
-        public void Product_InvalidPrice_ModelIsInvalid()
+        public void Product_WithPriceOutOfRange_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
-                Name = "Product",
-                Description = "Description",
-                Price = -10.99m,
+                Name = "Test Product",
+                Description = "This is a test product",
+                Price = -1.00m,
                 Quantity = 10
             };
 
@@ -116,19 +119,20 @@ namespace Ecommerce.API.Tests.Models
 
             // Assert
             isValid.Should().BeFalse();
+            results.Should().Contain(r => r.ErrorMessage == "The field Price must be between 0 and 1000.");
         }
 
         [Fact]
-        public void Product_InvalidQuantity_ModelIsInvalid()
+        public void Product_WithQuantityOutOfRange_ShouldBeInvalid()
         {
             // Arrange
             var product = new Product
             {
                 Id = 1,
-                Name = "Product",
-                Description = "Description",
-                Price = 10.99m,
-                Quantity = -10
+                Name = "Test Product",
+                Description = "This is a test product",
+                Price = 19.99m,
+                Quantity = -1
             };
 
             // Act
@@ -138,6 +142,7 @@ namespace Ecommerce.API.Tests.Models
 
             // Assert
             isValid.Should().BeFalse();
+            results.Should().Contain(r => r.ErrorMessage == "The field Quantity must be between 0 and 1000.");
         }
     }
 }
